@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Demo</title>
+    <style>
+      label {
+        display: block;
+      }
+    </style>
+    <script type="module">
+      document.getElementById("displayOff").addEventListener("click", () => {
+        fetch("/api?displayOff");
+      });
+
+      document.getElementById("brightness").addEventListener("change", (e) => {
+        fetch("/api?brightness=" + e.target.value);
+      });
+      document.getElementById("volume").addEventListener("change", (e) => {
+        fetch("/api?volume=" + e.target.value);
+      });
+
+      document.getElementById("setClock").addEventListener("click", () => {
+        const clockType = document.getElementsByName("clockType")[0].value;
+        const showClock = document.getElementsByName("showClock")[0].checked;
+        const showWeather =
+          document.getElementsByName("showWeather")[0].checked;
+        const showTemperature =
+          document.getElementsByName("showTemperature")[0].checked;
+        const showCalendar =
+          document.getElementsByName("showCalendar")[0].checked;
+        const color = parseColor(
+          document.getElementsByName("clockColor")[0].value
+        );
+        fetch(
+          `/api?clock=${clockType}&showClock=${showClock ? 1 : 0}&showWeather=${
+            showWeather ? 1 : 0
+          }&showTemperature=${showTemperature ? 1 : 0}&showCalendar=${
+            showCalendar ? 1 : 0
+          }&clockColor=${color[0]},${color[1]},${color[2]}`
+        );
+      });
+
+      document.getElementById("syncTime").addEventListener("click", () => {
+        fetch(`/api?syncTime`);
+      });
+
+      document.getElementById("setWeather").addEventListener("click", () => {
+        const weatherType = document.getElementsByName("weatherType")[0].value;
+        const temperature = document.getElementsByName("temperature")[0].value;
+        fetch(`/api?weather=${weatherType}&temperature=${temperature}`);
+      });
+
+      document.getElementById("setLight").addEventListener("click", () => {
+        const lightType = document.getElementsByName("lightType")[0].value;
+        const color = parseColor(
+          document.getElementsByName("lightColor")[0].value
+        );
+        const brightness =
+          document.getElementsByName("lightBrightness")[0].value;
+        fetch(
+          `/api?light=${lightType}&lightColor=${color[0]},${color[1]},${color[2]}&lightBrightness=${brightness}`
+        );
+      });
+
+      function parseColor(color) {
+        const r = parseInt(color.substr(1, 2), 16);
+        const g = parseInt(color.substr(3, 2), 16);
+        const b = parseInt(color.substr(5, 2), 16);
+        return [r, g, b];
+      }
+    </script>
+  </head>
+  <body>
+    <fieldset>
+      <h2>Power</h2>
+      <button id="displayOff" class="primary">Turn display off</button>
+      <label
+        ><input type="range" id="brightness" min="0" max="100" value="80" />
+        Brightness</label
+      >
+      <label
+        ><input type="range" id="volume" min="0" max="16" value="10" />
+        Volume</label
+      >
+    </fieldset>
+
+    <fieldset>
+      <h2>Clock</h2>
+      <select name="clockType">
+        <option value="FULL_SCREEN">FULL_SCREEN</option>
+        <option value="RAINBOW">RAINBOW</option>
+        <option value="BOXED">BOXED</option>
+        <option value="ANALOG_SQUARE">ANALOG_SQUARE</option>
+        <option value="FULL_SCREEN_INVERTED">FULL_SCREEN_INVERTED</option>
+        <option value="ANALOG_ROUND">ANALOG_ROUND</option>
+      </select>
+      <label
+        ><input type="checkbox" name="showClock" checked /> Show clock</label
+      >
+      <label><input type="checkbox" name="showWeather" /> Show weather</label>
+      <label
+        ><input type="checkbox" name="showTemperature" /> Show
+        temperature</label
+      >
+      <label><input type="checkbox" name="showCalendar" /> Show calendar</label>
+      <label
+        ><input type="color" name="clockColor" value="#FF0000" /> Clock
+        color</label
+      >
+      <button id="setClock" class="primary">Set</button>
+      <button id="syncTime" class="primary">Sync current time</button>
+    </fieldset>
+
+    <fieldset>
+      <h2>Weather</h2>
+      <select name="weatherType">
+        <option value="OUTDOOR_VERY_LIGHT_CLOUDS">
+          OUTDOOR_VERY_LIGHT_CLOUDS
+        </option>
+        <option value="CITY_CLOUDY">CITY_CLOUDY</option>
+        <option value="CITY_LIGHT_CLOUDS">CITY_LIGHT_CLOUDS</option>
+        <option value="THUNDERSTORM">THUNDERSTORM</option>
+        <option value="RAIN">RAIN</option>
+        <option value="SNOW">SNOW</option>
+        <option value="FOG">FOG</option>
+      </select>
+      <label
+        ><input type="number" name="temperature" value="20" /> degrees</label
+      >
+      <button id="setWeather" class="primary">Set</button>
+    </fieldset>
+
+    <fieldset>
+      <h3>Light</h3>
+      <select name="lightType">
+        <option value="PLAIN">PLAIN</option>
+        <option value="TINTED_PINK">TINTED_PINK</option>
+        <option value="RED_BLUE_STRIPED">
+          RED_BLUE_STRIPED (ignores color)
+        </option>
+      </select>
+      <label
+        ><input type="color" name="lightColor" value="#FF0000" /> Color</label
+      >
+      <label
+        ><input
+          type="range"
+          name="lightBrightness"
+          min="0"
+          max="100"
+          value="100"
+        />
+        Brightness
+      </label>
+      <button id="setLight" class="primary">Set</button>
+    </fieldset>
+    <fieldset>
+      <h3>Image</h3>
+      <form action="/image" method="POST" enctype="multipart/form-data">
+        <input
+          type="file"
+          name="file"
+          accept="image/png, image/jpeg, image/gif"
+        />
+        <button class="primary" type="submit">Show image</button>
+      </form>
+    </fieldset>
+    <fieldset>
+      <h3>Animation</h3>
+      <form action="/animation" method="POST" enctype="multipart/form-data">
+        <input type="file" name="file" accept="image/gif" />
+        <button class="primary" type="submit">Show image</button>
+      </form>
+    </fieldset>
+  </body>
+</html>
