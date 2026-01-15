@@ -1,4 +1,4 @@
-package main
+package server
 
 import (
 	"encoding/hex"
@@ -19,8 +19,8 @@ type Connection struct {
 	active         bool
 }
 
-func NewConnection(mac string, channel int, callback func([]byte)) Connection {
-	return Connection{
+func NewConnection(mac string, channel int, callback func([]byte)) *Connection {
+	return &Connection{
 		macAddr:  mac,
 		channel:  uint8(channel),
 		callback: callback,

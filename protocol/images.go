@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"image"
 	"math"
+	"strconv"
+	"strings"
 )
 
 type Color [3]byte
@@ -12,6 +14,23 @@ func (c1 *Color) equals(c2 Color) bool {
 	return c1[0] == c2[0] &&
 		c1[1] == c2[1] &&
 		c1[2] == c2[2]
+}
+
+func ColorFromHex(hex string) Color {
+	color := Color{}
+	hex = strings.TrimPrefix(hex, "#")
+	if len(hex) >= 6 {
+		r, rErr := strconv.ParseInt(hex[0:2], 16, 16)
+		g, gErr := strconv.ParseInt(hex[2:4], 16, 16)
+		b, bErr := strconv.ParseInt(hex[4:6], 16, 16)
+		if rErr != nil || gErr != nil || bErr != nil {
+			return color
+		}
+		color[0] = byte(r)
+		color[1] = byte(g)
+		color[2] = byte(b)
+	}
+	return color
 }
 
 func convertImage(image *image.RGBA) ([]byte, []byte, error) {
