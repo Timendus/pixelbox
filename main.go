@@ -6,6 +6,7 @@ import (
 	_ "image/png"
 	"log"
 
+	"github.com/timendus/pixelbox/controllers"
 	"github.com/timendus/pixelbox/protocol"
 
 	// Allow controllers to initialize themselves
@@ -30,8 +31,7 @@ func callback(message []byte) {
 		log.Println("Could not parse message:", err, message)
 		return
 	}
-	log.Println("Parsed incoming message as:")
 	for _, command := range commands {
-		log.Println(" *", command)
+		controllers.Events.Broadcast(command.String())
 	}
 }
