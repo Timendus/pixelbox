@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/timendus/pixelbox/models"
 	"github.com/timendus/pixelbox/protocol"
 	"github.com/timendus/pixelbox/server"
 	xdraw "golang.org/x/image/draw"
@@ -18,23 +19,21 @@ import (
 func init() {
 	router := http.NewServeMux()
 	router.HandleFunc("GET /syncTime", syncTime)
-	router.HandleFunc("POST /scene", showScene)
+	router.HandleFunc("POST /preview", preview)
 	router.HandleFunc("POST /image", showImage)
 	router.HandleFunc("POST /gif", showGif)
 	server.RegisterRouter("/apply", router)
 }
 
-func showScene(res http.ResponseWriter, req *http.Request) {
+func preview(res http.ResponseWriter, req *http.Request) {
 	req.Body = http.MaxBytesReader(res, req.Body, 1<<20) // 1 MB
 	defer req.Body.Close()
 
-	var scene Scene
+	var scene models.Scene
 	if err := json.NewDecoder(req.Body).Decode(&scene); err != nil {
 		http.Error(res, "invalid JSON: "+err.Error(), http.StatusBadRequest)
 		return
 	}
-
-	log.Println(scene.Light)
 
 	message, err := scene.ToMessage()
 	if err != nil {

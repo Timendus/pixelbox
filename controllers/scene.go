@@ -1,0 +1,132 @@
+package controllers
+
+import (
+	"encoding/json"
+	"net/http"
+
+	"github.com/google/uuid"
+	"github.com/timendus/pixelbox/models"
+	"github.com/timendus/pixelbox/server"
+)
+
+func init() {
+	router := http.NewServeMux()
+	router.HandleFunc("GET /", sceneList)
+	router.HandleFunc("PUT /", newScene)
+	router.HandleFunc("GET /{id}", getScene)
+	router.HandleFunc("DELETE /{id}", deleteScene)
+	router.HandleFunc("POST /{id}", updateScene)
+	router.HandleFunc("GET /{id}/apply", applyScene)
+	server.RegisterRouter("/scene", router)
+}
+
+func sceneList(res http.ResponseWriter, req *http.Request) {
+	scenes := models.AllScenes()
+	json.NewEncoder(res).Encode(scenes)
+}
+
+func newScene(res http.ResponseWriter, req *http.Request) {
+	scene := models.Scene{
+		Name: "New Scene",
+	}
+	err := scene.Create()
+	if err != nil {
+		http.Error(res, "invalid JSON: "+err.Error(), http.StatusBadRequest)
+		return
+	}
+	res.WriteHeader(http.StatusOK)
+}
+
+func getScene(res http.ResponseWriter, req *http.Request) {
+	uuid, err := uuid.Parse(req.PathValue("id"))
+	if err != nil {
+		http.Error(res, "invalid ID requested", http.StatusBadRequest)
+		return
+	}
+	scene, err := models.FindSceneByUUID(uuid)
+	if err != nil {
+		http.Error(res, "Could not find model with given ID", http.StatusNotFound)
+		return
+	}
+	json.NewEncoder(res).Encode(scene)
+}
+
+func deleteScene(res http.ResponseWriter, req *http.Request) {
+	uuid, err := uuid.Parse(req.PathValue("id"))
+	if err != nil {
+		http.Error(res, "invalid ID requested", http.StatusBadRequest)
+		return
+	}
+	scene, err := models.FindSceneByUUID(uuid)
+	if err != nil {
+		http.Error(res, "Could not find model with given ID", http.StatusNotFound)
+		return
+	}
+	err = scene.Delete()
+	if err != nil {
+		http.Error(res, "Could not delete model", http.StatusInternalServerError)
+		return
+	}
+	res.WriteHeader(http.StatusOK)
+}
+
+func updateScene(res http.ResponseWriter, req *http.Request) {
+	uuid, err := uuid.Parse(req.PathValue("id"))
+	if err != nil {
+		http.Error(res, "invalid ID requested", http.StatusBadRequest)
+		return
+	}
+
+	scene, err := models.FindSceneByUUID(uuid)
+	if err != nil {
+		http.Error(res, "Could not find model with given ID", http.StatusNotFound)
+		return
+	}
+
+	req.Body = http.MaxBytesReader(res, req.Body, 1<<20) // 1 MB
+	defer req.Body.Close()
+
+	var newScene models.Scene
+	if err := json.NewDecoder(req.Body).Decode(&newScene); err != nil {
+		http.Error(res, "invalid JSON: "+err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	err = scene.Update(&newScene)
+	if err != nil {
+		http.Error(res, "Could not update model", http.StatusInternalServerError)
+		return
+	}
+
+	res.WriteHeader(http.StatusOK)
+}
+
+func applyScene(res http.ResponseWriter, req *http.Request) {
+	scene, err := models.FindSceneById(req.PathValue("id"))
+	if err != nil {
+		uuid, err := uuid.Parse(req.PathValue("id"))
+		if err != nil {
+			http.Error(res, "invalid ID requested", http.StatusBadRequest)
+			return
+		}
+		scene, err = models.FindSceneByUUID(uuid)
+		if err != nil {
+			http.Error(res, "Could not find model with given ID", http.StatusNotFound)
+			return
+		}
+	}
+
+	message, err := scene.GetMessage()
+	if err != nil {
+		http.Error(res, "could not create message from scene: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	err = server.GetConnection().Send(message)
+	if err != nil {
+		http.Error(res, "could not apply scene: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	res.WriteHeader(http.StatusOK)
+}
