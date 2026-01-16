@@ -68,7 +68,7 @@ type Effect struct {
 
 /* Scene storage stuff */
 
-var scenes = []Scene{}
+var scenes = []*Scene{}
 var dir = "scenes"
 
 func init() {
@@ -97,20 +97,20 @@ func init() {
 		}
 		f.Close()
 
-		scenes = append(scenes, scene)
+		scenes = append(scenes, &scene)
 	}
 
 	log.Printf("Loaded %d scenes from file\n", len(scenes))
 }
 
-func AllScenes() []Scene {
+func AllScenes() []*Scene {
 	return scenes
 }
 
 func FindSceneByUUID(uuid uuid.UUID) (*Scene, error) {
 	for _, s := range scenes {
 		if s.Uuid == uuid {
-			return &s, nil
+			return s, nil
 		}
 	}
 	return nil, fmt.Errorf("scene not found")
@@ -119,7 +119,7 @@ func FindSceneByUUID(uuid uuid.UUID) (*Scene, error) {
 func FindSceneById(id string) (*Scene, error) {
 	for _, s := range scenes {
 		if s.Id == id {
-			return &s, nil
+			return s, nil
 		}
 	}
 	return nil, fmt.Errorf("scene not found")
@@ -135,7 +135,7 @@ func (scene *Scene) Create() error {
 	if err != nil {
 		return err
 	}
-	scenes = append(scenes, *scene)
+	scenes = append(scenes, scene)
 	return nil
 }
 
