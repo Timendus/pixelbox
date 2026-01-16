@@ -239,7 +239,8 @@ class DataProxy {
     if (target == null || typeof target !== "object" || !(leaf in target)) {
       throw new Error(`Data object has no property ${leaf} for path ${path}`);
     }
-    target[leaf] = this._cast(value, typeof target[leaf]);
+    if (target[leaf] == null) target[leaf] = this._toValue(value);
+    else target[leaf] = this._cast(value, typeof target[leaf]);
   }
 
   _cast(value, type) {
