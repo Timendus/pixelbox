@@ -1,13 +1,20 @@
 :root {
   --text-color: rgb(200, 200, 200);
   --light-text-color: rgb(150, 150, 150);
+  --loading-color: var(--text-color);
+
   --border-color: rgb(50, 50, 50);
+  --border-hover-color: rgb(60, 60, 60);
+  --warning-color: rgb(79, 9, 9);
+  --warning-hover-color: rgb(90, 9, 9);
+  --primary-color: rgb(30, 30, 80);
+  --primary-hover-color: rgb(33, 33, 100);
+
   --background-color: rgb(10, 10, 10);
   --background-2-color: rgb(20, 20, 20);
   --background-3-color: rgb(30, 30, 30);
   --background-3-blue-color: rgb(30, 30, 50);
   --background-4-color: rgb(38, 38, 38);
-  --warning-color: rgb(79, 9, 9);
 }
 
 * {
@@ -22,6 +29,51 @@ body {
   background-color: var(--background-color);
   color: var(--text-color);
   font-family: Verdana, Geneva, Tahoma, sans-serif;
+}
+
+.overlay {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1;
+
+  background-color: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(5px);
+  font-size: 2em;
+  color: var(--text-color);
+
+  &:before {
+    content: "";
+    display: block;
+    margin: 1em;
+    width: 50px;
+    padding: 8px;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    background: var(--loading-color);
+    --_m: conic-gradient(#0000 10%, #000), linear-gradient(#000 0 0) content-box;
+    -webkit-mask: var(--_m);
+    mask: var(--_m);
+    -webkit-mask-composite: source-out;
+    mask-composite: subtract;
+    animation: rotate 1s infinite linear;
+  }
+
+  &.hidden {
+    display: none;
+  }
+}
+@keyframes rotate {
+  to {
+    transform: rotate(1turn);
+  }
 }
 
 main {
@@ -67,11 +119,18 @@ main > header {
 
 main > aside {
   grid-area: aside;
-  padding: 2em;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding: 0 2em;
   border-right: 1px solid var(--border-color);
 
-  & > ul {
+  h2 {
     margin: 2em 0;
+  }
+
+  & ul.scenes {
+    margin: 0 0 2em 0;
     list-style-type: none;
     /* border-top: 1px solid var(--border-color); */
 
@@ -93,6 +152,23 @@ main > aside {
         &:hover {
           background-color: var(--background-3-blue-color);
         }
+      }
+    }
+  }
+
+  & ul.messages {
+    margin: -2em 0 2em 0;
+    list-style-type: none;
+    height: 100%;
+    overflow-y: auto;
+
+    & li {
+      font-family: "Courier New", Courier, monospace;
+      padding: 2em 0;
+      border-bottom: 1px solid var(--border-color);
+
+      &:last-child {
+        border-bottom: none;
       }
     }
   }
@@ -187,6 +263,9 @@ main > section {
     &:invalid {
       background-color: var(--warning-color);
     }
+    &:disabled {
+      color: var(--light-text-color);
+    }
   }
 
   & label {
@@ -217,28 +296,39 @@ main > section {
     width: calc(100% - 3em) !important;
   }
 
-  & .hidden:not(.active) {
-    display: none !important;
-  }
-
   & .button-holder {
     margin: 2em 0;
     text-align: right;
   }
+}
 
-  & button.primary {
-    padding: 0.7em 1.2em;
+& button {
+  padding: 0.7em 1.2em;
 
-    background-color: rgb(30, 30, 80);
-    color: white;
-    border: 1px solid var(--border-color);
-    border-radius: 0.5em;
-    font-size: 1em;
-    cursor: pointer;
+  background-color: var(--background-3-color);
+  color: white;
+  border: 1px solid var(--border-color);
+  border-radius: 0.5em;
+  font-size: 1em;
+  cursor: pointer;
 
+  &.primary {
+    background-color: var(--primary-color);
     &:hover {
-      background-color: rgb(30, 30, 100);
-      border-color: rgb(60, 60, 60);
+      background-color: var(--primary-hover-color);
     }
   }
+  &.warning {
+    background-color: var(--warning-color);
+    &:hover {
+      background-color: var(--warning-hover-color);
+    }
+  }
+  &:hover {
+    border-color: var(--border-hover-color);
+  }
+}
+
+& .hidden:not(.active) {
+  display: none !important;
 }

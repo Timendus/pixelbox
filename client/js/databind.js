@@ -196,7 +196,7 @@ class DataProxy {
 
   _wrap(data, prefix = []) {
     for (const key of Object.keys(data)) {
-      if (typeof data[key] == "object" && key != "_path") {
+      if (data[key] != null && typeof data[key] == "object" && key != "_path") {
         data[key]._path = [...prefix, key];
         data[key] = this._wrap(data[key], [...prefix, key]);
       }

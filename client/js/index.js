@@ -1,105 +1,157 @@
 import Databind from "./databind.js";
 
-const data = {
-  autoPreview: true,
-  scenes: ["Henk", "Sjon", "Ingrid", "Ali"],
-  selectedScene: {
-    name: "Henk",
-    id: "henk",
-    changeBrightness: false,
-    brightness: 100,
-    changeVolume: false,
-    volume: undefined,
-    sceneType: "clock",
-    clock: {
-      enabled: true,
-      type: "FULL_SCREEN",
-      color: "#005500",
-    },
-    weather: {
-      enabled: false,
-      type: "RAIN",
-    },
-    temperature: {
-      enabled: false,
-      temperature: 20,
-    },
-    calendar: {
-      enabled: false,
-    },
-    light: {
-      type: "PLAIN",
-      color: "#FFFF00",
-    },
-    effect: {
-      type: "VJ",
-      vjType: 1,
-      visualisationType: 5,
-      scoreRedPlayer: 10,
-      scoreBluePlayer: undefined,
-    },
-  },
-};
-
-const boundData = new Databind("body", data);
-
-// Some more complicated relations between properties go here:
-let restoreBrightness = !boundData.selectedScene.changeBrightness;
-boundData.addEventListener("change", (path, oldVal, newVal) => {
-  switch (path) {
-    case "selectedScene.brightness":
-      // Check the change brightness checkbox if slider moved
-      boundData.selectedScene.changeBrightness = true;
-      break;
-
-    case "selectedScene.changeBrightness":
-      // If we've manually changed the brightness settings, don't restore them
-      // when changing tabs
-      restoreBrightness = false;
-      break;
-
-    case "selectedScene.sceneType":
-      // When user changes to light tab, auto-select brightness checkbox
-      if (oldVal != "light" && newVal == "light") {
-        const oldChangeBrightness = boundData.selectedScene.changeBrightness;
-        boundData.selectedScene.changeBrightness = true;
-        if (!oldChangeBrightness) {
-          restoreBrightness = true;
-        }
-      }
-      // When user changes away from light tab, restore brightness checkbox if
-      // it was unchecked previously and user hasn't manually touched it
-      if (oldVal == "light" && newVal != "light") {
-        if (restoreBrightness) {
-          boundData.selectedScene.changeBrightness = false;
-        }
-      }
-      break;
-  }
-
-  if (boundData.autoPreview)
-    fetch("/apply/scene", {
-      method: "POST",
-      body: JSON.stringify(boundData.selectedScene),
-    });
+// We need this to be able to get started
+document.getElementById("addScene").addEventListener("click", async () => {
+  if (
+    await call("/scene/", {
+      method: "PUT",
+    })
+  )
+    document.location.reload();
 });
 
-window.data = boundData;
+// Put the rest of the stuff in motion
+const data = await loadDataObject();
+if (data != null) {
+  const boundData = new Databind("body", data);
+  applyRelationships(boundData);
+  registerEventHandlers(boundData);
+}
+document.querySelector(".overlay").classList.add("hidden");
 
-document
-  .getElementById("syncTime")
-  .addEventListener("click", () => fetch("/apply/syncTime"));
+// Aaand done!
 
-document.getElementById("preview").addEventListener("click", () =>
-  fetch("/apply/scene", {
-    method: "POST",
-    body: JSON.stringify(boundData.selectedScene),
-  })
-);
+async function loadDataObject() {
+  const data = {
+    autoPreview: true,
+    scenes: [],
+    selectedScene: {},
+  };
 
-document.getElementById("save").addEventListener("click", () =>
-  fetch("/scene/update", {
-    method: "POST",
-    body: JSON.stringify(boundData.selectedScene),
-  })
-);
+  // Load scenes from server
+  try {
+    const scenesRequest = await fetch("/scene/");
+    if (!scenesRequest.ok) {
+      showMessage("Got an error from the server when loading scenes");
+      return null;
+    }
+    data.scenes = await scenesRequest.json();
+  } catch (e) {
+    showMessage("Could not reach server: " + e);
+    return null;
+  }
+
+  // Select first scene
+  if (!data.scenes || data.scenes.length == 0) {
+    showMessage("No scenes found");
+    return null;
+  }
+  data.selectedScene = data.scenes[0];
+
+  return data;
+}
+
+function applyRelationships(boundData) {
+  // Some more complicated relationships between properties than what we can
+  // comfortably model with DOM attributes go here
+
+  let restoreBrightness = !boundData.selectedScene.changeBrightness;
+  boundData.addEventListener("change", (path, oldVal, newVal) => {
+    switch (path) {
+      case "selectedScene.brightness":
+        // Check the change brightness checkbox if slider moved
+        boundData.selectedScene.changeBrightness = true;
+        break;
+
+      case "selectedScene.changeBrightness":
+        // If we've manually changed the brightness settings, don't restore them
+        // when changing tabs
+        restoreBrightness = false;
+        break;
+
+      case "selectedScene.sceneType":
+        // When user changes to light tab, auto-select brightness checkbox
+        if (oldVal != "light" && newVal == "light") {
+          const oldChangeBrightness = boundData.selectedScene.changeBrightness;
+          boundData.selectedScene.changeBrightness = true;
+          if (!oldChangeBrightness) {
+            restoreBrightness = true;
+          }
+        }
+        // When user changes away from light tab, restore brightness checkbox if
+        // it was unchecked previously and user hasn't manually touched it
+        if (oldVal == "light" && newVal != "light") {
+          if (restoreBrightness) {
+            boundData.selectedScene.changeBrightness = false;
+          }
+        }
+        break;
+
+      case "selectedScene.name":
+        boundData.selectedScene.id = toId(newVal);
+        break;
+    }
+
+    if (boundData.autoPreview) {
+      call("/apply/preview", {
+        method: "POST",
+        body: JSON.stringify(boundData.selectedScene),
+      });
+    }
+  });
+}
+
+function toId(name) {
+  return encodeURI(name.toLowerCase().replaceAll(" ", "-"));
+}
+
+function registerEventHandlers(boundData) {
+  document
+    .getElementById("syncTime")
+    .addEventListener("click", () => call("/apply/syncTime"));
+
+  document.getElementById("preview").addEventListener("click", () =>
+    call("/apply/preview", {
+      method: "POST",
+      body: JSON.stringify(boundData.selectedScene),
+    })
+  );
+
+  document.getElementById("save").addEventListener("click", () =>
+    call("/scene/" + boundData.selectedScene.uuid, {
+      method: "POST",
+      body: JSON.stringify(boundData.selectedScene),
+    })
+  );
+
+  document.getElementById("deleteScene").addEventListener("click", async () => {
+    if (
+      await call("/scene/" + boundData.selectedScene.uuid, {
+        method: "DELETE",
+      })
+    )
+      document.location.reload();
+  });
+}
+
+async function call(url, payload) {
+  try {
+    const response = await fetch(url, payload);
+    if (!response.ok) {
+      showMessage(await response.text());
+      return false;
+    }
+  } catch (e) {
+    showMessage(e);
+    return false;
+  }
+  return true;
+}
+
+function showMessage(message) {
+  const item = document.createElement("li");
+  item.innerText = message;
+  const firstItem = document.querySelector("#messages > li");
+  document.getElementById("messages").insertBefore(item, firstItem);
+  document.getElementById("messagesContainer").classList.remove("hidden");
+}

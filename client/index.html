@@ -8,6 +8,7 @@
     <script type="module" src="js/index.js"></script>
   </head>
   <body>
+    <div class="overlay">Loading</div>
     <main>
       <header>
         <h1>Divoom Timebox Evo</h1>
@@ -19,246 +20,260 @@
 
       <aside>
         <h2>Scenes</h2>
-        <ul>
+        <ul class="scenes">
           <li><a href="">Name</a></li>
           <li><a href="">Name</a></li>
           <li><a href="">Name</a></li>
           <li><a href="">Name</a></li>
           <li><a href="">Name</a></li>
         </ul>
+        <button class="primary" id="addScene">+ Add scene</button>
+
+        <div class="hidden" id="messagesContainer">
+          <h2>Messages</h2>
+          <ul id="messages" class="messages"></ul>
+        </div>
       </aside>
 
       <section>
-        <fieldset>
-          <legend>Scene properties</legend>
-          <input
-            type="text"
-            placeholder="Scene name"
-            data-bind="selectedScene.name"
-          />
-          <input
-            type="text"
-            placeholder="Scene ID"
-            data-bind="selectedScene.id"
-          />
-
-          <label>
+        <div class="hidden" data-active-if="selectedScene">
+          <fieldset>
+            <legend>Scene properties</legend>
             <input
-              type="checkbox"
-              title="Wether to modify the brightness for this scene"
-              data-bind="selectedScene.changeBrightness"
+              type="text"
+              placeholder="Scene name"
+              data-bind="selectedScene.name"
             />
-            Brightness
             <input
-              type="range"
-              min="0"
-              max="100"
-              data-bind="selectedScene.brightness"
+              type="text"
+              placeholder="Scene ID"
+              data-bind="selectedScene.id"
+              disabled
             />
-          </label>
-          <label>
-            <input
-              type="checkbox"
-              title="Wether to modify the volume for this scene"
-              data-bind="selectedScene.changeVolume"
-            />
-            Volume
-            <input
-              type="range"
-              min="0"
-              max="16"
-              data-bind="selectedScene.volume"
-            />
-          </label>
-        </fieldset>
 
-        <fieldset>
-          <legend>What to show</legend>
-
-          <ul class="tabs">
-            <li
-              data-active-if="selectedScene.sceneType==clock"
-              data-click="selectedScene.sceneType=clock"
-            >
-              Clock
-            </li>
-            <li
-              data-active-if="selectedScene.sceneType==light"
-              data-click="selectedScene.sceneType=light"
-            >
-              Light
-            </li>
-            <li
-              data-active-if="selectedScene.sceneType==effects"
-              data-click="selectedScene.sceneType=effects"
-            >
-              Effects
-            </li>
-            <li
-              data-active-if="selectedScene.sceneType==image"
-              data-click="selectedScene.sceneType=image"
-            >
-              Image
-            </li>
-            <li
-              data-active-if="selectedScene.sceneType==animation"
-              data-click="selectedScene.sceneType=animation"
-            >
-              Animation
-            </li>
-          </ul>
-
-          <div class="tab" data-active-if="selectedScene.sceneType==clock">
             <label>
-              <input type="checkbox" data-bind="selectedScene.clock.enabled" />
-              Show clock
+              <input
+                type="checkbox"
+                title="Wether to modify the brightness for this scene"
+                data-bind="selectedScene.changeBrightness"
+              />
+              Brightness
+              <input
+                type="range"
+                min="0"
+                max="100"
+                data-bind="selectedScene.brightness"
+              />
             </label>
-            <div
-              class="indented hidden"
-              data-active-if="selectedScene.clock.enabled"
-            >
-              <select data-bind="selectedScene.clock.type">
-                <option value="FULL_SCREEN">FULL_SCREEN</option>
-                <option value="RAINBOW">RAINBOW</option>
-                <option value="BOXED">BOXED</option>
-                <option value="ANALOG_SQUARE">ANALOG_SQUARE</option>
-                <option value="FULL_SCREEN_INVERTED">
-                  FULL_SCREEN_INVERTED
+            <label>
+              <input
+                type="checkbox"
+                title="Wether to modify the volume for this scene"
+                data-bind="selectedScene.changeVolume"
+              />
+              Volume
+              <input
+                type="range"
+                min="0"
+                max="16"
+                data-bind="selectedScene.volume"
+              />
+            </label>
+
+            <button id="deleteScene" class="warning">Delete scene</button>
+          </fieldset>
+
+          <fieldset>
+            <legend>What to show</legend>
+
+            <ul class="tabs">
+              <li
+                data-active-if="selectedScene.sceneType==clock"
+                data-click="selectedScene.sceneType=clock"
+              >
+                Clock
+              </li>
+              <li
+                data-active-if="selectedScene.sceneType==light"
+                data-click="selectedScene.sceneType=light"
+              >
+                Light
+              </li>
+              <li
+                data-active-if="selectedScene.sceneType==effects"
+                data-click="selectedScene.sceneType=effects"
+              >
+                Effects
+              </li>
+              <li
+                data-active-if="selectedScene.sceneType==image"
+                data-click="selectedScene.sceneType=image"
+              >
+                Image
+              </li>
+              <li
+                data-active-if="selectedScene.sceneType==animation"
+                data-click="selectedScene.sceneType=animation"
+              >
+                Animation
+              </li>
+            </ul>
+
+            <div class="tab" data-active-if="selectedScene.sceneType==clock">
+              <label>
+                <input
+                  type="checkbox"
+                  data-bind="selectedScene.clock.enabled"
+                />
+                Show clock
+              </label>
+              <div
+                class="indented hidden"
+                data-active-if="selectedScene.clock.enabled"
+              >
+                <select data-bind="selectedScene.clock.type">
+                  <option value="FULL_SCREEN">FULL_SCREEN</option>
+                  <option value="RAINBOW">RAINBOW</option>
+                  <option value="BOXED">BOXED</option>
+                  <option value="ANALOG_SQUARE">ANALOG_SQUARE</option>
+                  <option value="FULL_SCREEN_INVERTED">
+                    FULL_SCREEN_INVERTED
+                  </option>
+                  <option value="ANALOG_ROUND">ANALOG_ROUND</option>
+                </select>
+                <label>
+                  <input type="color" data-bind="selectedScene.clock.color" />
+                  Accent color
+                </label>
+              </div>
+              <label>
+                <input
+                  type="checkbox"
+                  name="showWeather"
+                  data-bind="selectedScene.weather.enabled"
+                />
+                Show weather
+              </label>
+              <select
+                class="indented hidden"
+                data-bind="selectedScene.weather.type"
+                data-active-if="selectedScene.weather.enabled"
+              >
+                <option value="OUTDOOR_VERY_LIGHT_CLOUDS">
+                  OUTDOOR_VERY_LIGHT_CLOUDS
                 </option>
-                <option value="ANALOG_ROUND">ANALOG_ROUND</option>
+                <option value="CITY_CLOUDY">CITY_CLOUDY</option>
+                <option value="CITY_LIGHT_CLOUDS">CITY_LIGHT_CLOUDS</option>
+                <option value="THUNDERSTORM">THUNDERSTORM</option>
+                <option value="RAIN">RAIN</option>
+                <option value="SNOW">SNOW</option>
+                <option value="FOG">FOG</option>
               </select>
               <label>
-                <input type="color" data-bind="selectedScene.clock.color" />
-                Accent color
+                <input
+                  type="checkbox"
+                  data-bind="selectedScene.temperature.enabled"
+                />
+                Show temperature
+              </label>
+              <input
+                class="indented hidden"
+                type="number"
+                min="-99"
+                max="99"
+                placeholder="temperature (degrees)"
+                data-bind="selectedScene.temperature.temperature"
+                data-active-if="selectedScene.temperature.enabled"
+              />
+              <label>
+                <input
+                  type="checkbox"
+                  data-bind="selectedScene.calendar.enabled"
+                />
+                Show calendar
+              </label>
+              <button id="syncTime" class="primary">Sync current time</button>
+            </div>
+
+            <div class="tab" data-active-if="selectedScene.sceneType==light">
+              <select data-bind="selectedScene.light.type">
+                <option value="PLAIN">PLAIN</option>
+                <option value="TINTED_PINK">TINTED_PINK</option>
+                <option value="RED_BLUE_STRIPED">RED_BLUE_STRIPED</option>
+              </select>
+              <label
+                class="hidden"
+                data-active-if="selectedScene.light.type!=RED_BLUE_STRIPED"
+              >
+                <input type="color" data-bind="selectedScene.light.color" />
+                Color
               </label>
             </div>
-            <label>
-              <input
-                type="checkbox"
-                name="showWeather"
-                data-bind="selectedScene.weather.enabled"
-              />
-              Show weather
-            </label>
-            <select
-              class="indented hidden"
-              data-bind="selectedScene.weather.type"
-              data-active-if="selectedScene.weather.enabled"
-            >
-              <option value="OUTDOOR_VERY_LIGHT_CLOUDS">
-                OUTDOOR_VERY_LIGHT_CLOUDS
-              </option>
-              <option value="CITY_CLOUDY">CITY_CLOUDY</option>
-              <option value="CITY_LIGHT_CLOUDS">CITY_LIGHT_CLOUDS</option>
-              <option value="THUNDERSTORM">THUNDERSTORM</option>
-              <option value="RAIN">RAIN</option>
-              <option value="SNOW">SNOW</option>
-              <option value="FOG">FOG</option>
-            </select>
-            <label>
-              <input
-                type="checkbox"
-                data-bind="selectedScene.temperature.enabled"
-              />
-              Show temperature
-            </label>
-            <input
-              class="indented hidden"
-              type="number"
-              min="-99"
-              max="99"
-              placeholder="temperature (degrees)"
-              data-bind="selectedScene.temperature.temperature"
-              data-active-if="selectedScene.temperature.enabled"
-            />
-            <label>
-              <input
-                type="checkbox"
-                data-bind="selectedScene.calendar.enabled"
-              />
-              Show calendar
-            </label>
-            <button id="syncTime" class="primary">Sync current time</button>
-          </div>
 
-          <div class="tab" data-active-if="selectedScene.sceneType==light">
-            <select data-bind="selectedScene.light.type">
-              <option value="PLAIN">PLAIN</option>
-              <option value="TINTED_PINK">TINTED_PINK</option>
-              <option value="RED_BLUE_STRIPED">RED_BLUE_STRIPED</option>
-            </select>
-            <label
-              class="hidden"
-              data-active-if="selectedScene.light.type!=RED_BLUE_STRIPED"
-            >
-              <input type="color" data-bind="selectedScene.light.color" />
-              Color
-            </label>
-          </div>
-
-          <div class="tab" data-active-if="selectedScene.sceneType==effects">
-            <select data-bind="selectedScene.effect.type">
-              <option value="CLOUD">Cloud</option>
-              <option value="VJ">VJ effect</option>
-              <option value="VISUALISATION">Visualisation</option>
-              <option value="SCOREBOARD">Scoreboard</option>
-            </select>
-            <input
-              type="number"
-              class="hidden"
-              min="0"
-              max="15"
-              placeholder="Effect number (0-15)"
-              data-bind="selectedScene.effect.vjType"
-              data-active-if="selectedScene.effect.type==VJ"
-            />
-            <input
-              type="number"
-              class="hidden"
-              min="0"
-              max="11"
-              placeholder="Visualisation number (0-11)"
-              data-bind="selectedScene.effect.visualisationType"
-              data-active-if="selectedScene.effect.type==VISUALISATION"
-            />
-            <div
-              class="hidden"
-              data-active-if="selectedScene.effect.type==SCOREBOARD"
-            >
+            <div class="tab" data-active-if="selectedScene.sceneType==effects">
+              <select data-bind="selectedScene.effect.type">
+                <option value="CLOUD">Cloud</option>
+                <option value="VJ">VJ effect</option>
+                <option value="VISUALISATION">Visualisation</option>
+                <option value="SCOREBOARD">Scoreboard</option>
+              </select>
               <input
                 type="number"
+                class="hidden"
                 min="0"
-                max="999"
-                placeholder="Blue player score (0-999)"
-                data-bind="selectedScene.effect.scoreBluePlayer"
+                max="15"
+                placeholder="Effect number (0-15)"
+                data-bind="selectedScene.effect.vjType"
+                data-active-if="selectedScene.effect.type==VJ"
               />
               <input
                 type="number"
+                class="hidden"
                 min="0"
-                max="999"
-                placeholder="Red player score (0-999)"
-                data-bind="selectedScene.effect.scoreRedPlayer"
+                max="11"
+                placeholder="Visualisation number (0-11)"
+                data-bind="selectedScene.effect.visualisationType"
+                data-active-if="selectedScene.effect.type==VISUALISATION"
               />
+              <div
+                class="hidden"
+                data-active-if="selectedScene.effect.type==SCOREBOARD"
+              >
+                <input
+                  type="number"
+                  min="0"
+                  max="999"
+                  placeholder="Blue player score (0-999)"
+                  data-bind="selectedScene.effect.scoreBluePlayer"
+                />
+                <input
+                  type="number"
+                  min="0"
+                  max="999"
+                  placeholder="Red player score (0-999)"
+                  data-bind="selectedScene.effect.scoreRedPlayer"
+                />
+              </div>
             </div>
-          </div>
 
-          <div class="hidden" data-active-if="selectedScene.sceneType==image">
-            <label>
-              Upload image:
-              <input type="file" />
-            </label>
-          </div>
-        </fieldset>
+            <div class="hidden" data-active-if="selectedScene.sceneType==image">
+              <label>
+                Upload image:
+                <input type="file" />
+              </label>
+            </div>
+          </fieldset>
 
-        <div class="button-holder">
-          <button
-            id="preview"
-            class="primary hidden"
-            data-active-if="autoPreview==false"
-          >
-            Preview
-          </button>
-          <button id="save" class="primary">Save</button>
+          <div class="button-holder">
+            <button
+              id="preview"
+              class="primary hidden"
+              data-active-if="autoPreview==false"
+            >
+              Preview
+            </button>
+            <button id="save" class="primary">Save</button>
+          </div>
         </div>
       </section>
     </main>
