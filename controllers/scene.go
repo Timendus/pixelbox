@@ -26,8 +26,33 @@ func sceneList(res http.ResponseWriter, req *http.Request) {
 }
 
 func newScene(res http.ResponseWriter, req *http.Request) {
+	brightness := 100
+	volume := 16
+	temperature := 20
 	scene := models.Scene{
-		Name: "New Scene",
+		Name:       "New Scene",
+		Id:         "new-scene",
+		Brightness: &brightness,
+		Volume:     &volume,
+		SceneType:  "clock",
+		Clock: models.Clock{
+			Enabled: true,
+			CType:   "FULL_SCREEN",
+			Color:   "#FF0000",
+		},
+		Weather: models.Weather{
+			WType: "OUTDOOR_VERY_LIGHT_CLOUDS",
+		},
+		Temperature: models.Temperature{
+			Temperature: &temperature,
+		},
+		Light: models.Light{
+			LType: "PLAIN",
+			Color: "#FFFF00",
+		},
+		Effect: models.Effect{
+			EType: "CLOUD",
+		},
 	}
 	err := scene.Create()
 	if err != nil {

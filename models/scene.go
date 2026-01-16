@@ -189,7 +189,7 @@ func (scene *Scene) writeToFile() error {
 }
 
 func (scene *Scene) deleteFile() error {
-	path := filepath.Join(dir, scene.Uuid.String())
+	path := filepath.Join(dir, scene.Uuid.String()+".json")
 	err := os.Remove(path)
 	if err != nil && !os.IsNotExist(err) {
 		return err
