@@ -1,6 +1,8 @@
 :root {
   --text-color: rgb(200, 200, 200);
   --light-text-color: rgb(150, 150, 150);
+  --error-text-color: rgb(184, 72, 72);
+  --timestamp-text-color: rgb(95, 95, 95);
   --loading-color: var(--text-color);
 
   --border-color: rgb(50, 50, 50);
@@ -156,6 +158,12 @@ main > aside {
     }
   }
 
+  & .messages-container {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+
   & ul.messages {
     margin: -2em 0 2em 0;
     list-style-type: none;
@@ -163,12 +171,29 @@ main > aside {
     overflow-y: auto;
 
     & li {
+      position: relative;
+      padding: 1em 0;
+
       font-family: "Courier New", Courier, monospace;
-      padding: 2em 0;
       border-bottom: 1px solid var(--border-color);
+      color: var(--light-text-color);
 
       &:last-child {
         border-bottom: none;
+      }
+      &:after {
+        content: attr(data-time);
+        display: block;
+        position: absolute;
+        right: 1em;
+        bottom: 0;
+
+        font-size: 0.8em;
+        text-align: right;
+        color: var(--timestamp-text-color);
+      }
+      &.error {
+        color: var(--error-text-color);
       }
     }
   }

@@ -16,6 +16,7 @@ if (data != null) {
   const boundData = new Databind("body", data);
   applyRelationships(boundData);
   registerEventHandlers(boundData);
+  connectToSSE();
 }
 document.querySelector(".overlay").classList.add("hidden");
 
@@ -60,7 +61,8 @@ function applyRelationships(boundData) {
     switch (path) {
       case "selectedScene.brightness":
         // Check the change brightness checkbox if slider moved
-        boundData.selectedScene.changeBrightness = true;
+        if (!boundData.selectedScene.changeBrightness)
+          boundData.selectedScene.changeBrightness = true;
         break;
 
       case "selectedScene.changeBrightness":
@@ -81,7 +83,7 @@ function applyRelationships(boundData) {
         // When user changes away from light tab, restore brightness checkbox if
         // it was unchecked previously and user hasn't manually touched it
         if (oldVal == "light" && newVal != "light") {
-          if (restoreBrightness) {
+          if (restoreBrightness && boundData.selectedScene.changeBrightness) {
             boundData.selectedScene.changeBrightness = false;
           }
         }
@@ -134,23 +136,33 @@ function registerEventHandlers(boundData) {
   });
 }
 
+function connectToSSE() {
+  const evtSource = new EventSource("/events");
+  evtSource.addEventListener("message", (e) => {
+    showMessage('Device says: "' + e.data + '"');
+  });
+}
+
 async function call(url, payload) {
   try {
     const response = await fetch(url, payload);
     if (!response.ok) {
-      showMessage(await response.text());
+      showMessage(await response.text(), true);
       return false;
     }
   } catch (e) {
-    showMessage(e);
+    showMessage(e, true);
     return false;
   }
   return true;
 }
 
-function showMessage(message) {
+function showMessage(message, error = false) {
   const item = document.createElement("li");
   item.innerText = message;
+  const now = new Date();
+  item.setAttribute("data-time", now.getHours() + ":" + now.getMinutes());
+  item.classList.toggle("error", error);
   const firstItem = document.querySelector("#messages > li");
   document.getElementById("messages").insertBefore(item, firstItem);
   document.getElementById("messagesContainer").classList.remove("hidden");
