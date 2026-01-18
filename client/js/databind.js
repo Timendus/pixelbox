@@ -149,6 +149,8 @@ export default class Databind {
             e.checked = val ?? this._data.retrieve(path);
           } else if ("value" in e) {
             e.value = val ?? this._data.retrieve(path);
+          } else if ("innerText" in e) {
+            e.innerText = val ?? this._data.retrieve(path);
           } else
             throw new Error("don't know how to write value to DOM element");
         }
