@@ -13,9 +13,9 @@ document.getElementById("addScene").addEventListener("click", async () => {
 // Put the rest of the stuff in motion
 const data = await loadDataObject();
 if (data != null) {
-  const boundData = new Databind("body", data);
-  applyRelationships(boundData);
-  registerEventHandlers(boundData);
+  const dataProxy = new Databind("body", data);
+  applyRelationships(dataProxy);
+  registerEventHandlers(dataProxy.data);
   connectToSSE();
 }
 document.querySelector(".overlay").classList.add("hidden");
@@ -52,17 +52,18 @@ async function loadDataObject() {
   return data;
 }
 
-function applyRelationships(boundData) {
+function applyRelationships(dataProxy) {
   // Some more complicated relationships between properties than what we can
   // comfortably model with DOM attributes go here
 
-  let restoreBrightness = !boundData.selectedScene.changeBrightness;
-  boundData.addEventListener("change", (path, oldVal, newVal) => {
+  const data = dataProxy.data;
+  let restoreBrightness = !data.selectedScene.changeBrightness;
+  dataProxy.addEventListener("change", (path, oldVal, newVal) => {
+    console.info(`Change at ${path} from ${oldVal} to ${newVal}`);
     switch (path) {
       case "selectedScene.brightness":
         // Check the change brightness checkbox if slider moved
-        if (!boundData.selectedScene.changeBrightness)
-          boundData.selectedScene.changeBrightness = true;
+        data.selectedScene.changeBrightness = true;
         break;
 
       case "selectedScene.changeBrightness":
@@ -74,9 +75,8 @@ function applyRelationships(boundData) {
       case "selectedScene.sceneType":
         // When user changes to light tab, auto-select brightness checkbox
         if (oldVal != "light" && newVal == "light") {
-          const oldChangeBrightness = boundData.selectedScene.changeBrightness;
-          if (!boundData.selectedScene.changeBrightness)
-            boundData.selectedScene.changeBrightness = true;
+          const oldChangeBrightness = data.selectedScene.changeBrightness;
+          data.selectedScene.changeBrightness = true;
           if (!oldChangeBrightness) {
             restoreBrightness = true;
           }
@@ -84,22 +84,21 @@ function applyRelationships(boundData) {
         // When user changes away from light tab, restore brightness checkbox if
         // it was unchecked previously and user hasn't manually touched it
         if (oldVal == "light" && newVal != "light") {
-          if (restoreBrightness && boundData.selectedScene.changeBrightness) {
-            if (boundData.selectedScene.changeBrightness)
-              boundData.selectedScene.changeBrightness = false;
+          if (restoreBrightness) {
+            data.selectedScene.changeBrightness = false;
           }
         }
         break;
 
       case "selectedScene.name":
-        boundData.selectedScene.id = toId(newVal);
+        data.selectedScene.id = toId(newVal);
         break;
     }
 
-    if (boundData.autoPreview) {
+    if (data.autoPreview) {
       call("/apply/preview", {
         method: "POST",
-        body: JSON.stringify(boundData.selectedScene),
+        body: JSON.stringify(data.selectedScene),
       });
     }
   });
@@ -109,7 +108,7 @@ function toId(name) {
   return encodeURI(name.toLowerCase().replaceAll(" ", "-"));
 }
 
-function registerEventHandlers(boundData) {
+function registerEventHandlers(data) {
   document
     .getElementById("syncTime")
     .addEventListener("click", () => call("/apply/syncTime"));
@@ -117,20 +116,20 @@ function registerEventHandlers(boundData) {
   document.getElementById("preview").addEventListener("click", () =>
     call("/apply/preview", {
       method: "POST",
-      body: JSON.stringify(boundData.selectedScene),
+      body: JSON.stringify(data.selectedScene),
     })
   );
 
   document.getElementById("save").addEventListener("click", () =>
-    call("/scene/" + boundData.selectedScene.uuid, {
+    call("/scene/" + data.selectedScene.uuid, {
       method: "POST",
-      body: JSON.stringify(boundData.selectedScene),
+      body: JSON.stringify(data.selectedScene),
     })
   );
 
   document.getElementById("deleteScene").addEventListener("click", async () => {
     if (
-      await call("/scene/" + boundData.selectedScene.uuid, {
+      await call("/scene/" + data.selectedScene.uuid, {
         method: "DELETE",
       })
     )

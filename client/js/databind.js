@@ -19,7 +19,7 @@ export default class Databind {
     // Apply the data to the DOM to bring them into initial sync
     this._applyValue();
 
-    return this._data.getProxy();
+    return this._data;
   }
 
   _normalizeOptions(options) {
