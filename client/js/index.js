@@ -75,7 +75,8 @@ function applyRelationships(boundData) {
         // When user changes to light tab, auto-select brightness checkbox
         if (oldVal != "light" && newVal == "light") {
           const oldChangeBrightness = boundData.selectedScene.changeBrightness;
-          boundData.selectedScene.changeBrightness = true;
+          if (!boundData.selectedScene.changeBrightness)
+            boundData.selectedScene.changeBrightness = true;
           if (!oldChangeBrightness) {
             restoreBrightness = true;
           }
@@ -84,7 +85,8 @@ function applyRelationships(boundData) {
         // it was unchecked previously and user hasn't manually touched it
         if (oldVal == "light" && newVal != "light") {
           if (restoreBrightness && boundData.selectedScene.changeBrightness) {
-            boundData.selectedScene.changeBrightness = false;
+            if (boundData.selectedScene.changeBrightness)
+              boundData.selectedScene.changeBrightness = false;
           }
         }
         break;
