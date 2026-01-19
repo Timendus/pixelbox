@@ -20,12 +20,13 @@
 
       <aside>
         <h2>Scenes</h2>
-        <ul class="scenes">
-          <li><a href="">Name</a></li>
-          <li><a href="">Name</a></li>
-          <li><a href="">Name</a></li>
-          <li><a href="">Name</a></li>
-          <li><a href="">Name</a></li>
+        <ul class="scenes" data-loop="index=scenes">
+          <li>
+            <a
+              data-click="selectedScene=scenes.index"
+              data-read="scenes.index.name"
+            ></a>
+          </li>
         </ul>
         <button class="primary" id="addScene">+ Add scene</button>
 
