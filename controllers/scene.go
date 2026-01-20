@@ -59,7 +59,7 @@ func newScene(res http.ResponseWriter, req *http.Request) {
 		http.Error(res, "invalid JSON: "+err.Error(), http.StatusBadRequest)
 		return
 	}
-	res.WriteHeader(http.StatusOK)
+	http.Redirect(res, req, "/scene/", http.StatusSeeOther)
 }
 
 func getScene(res http.ResponseWriter, req *http.Request) {
@@ -92,7 +92,7 @@ func deleteScene(res http.ResponseWriter, req *http.Request) {
 		http.Error(res, "Could not delete model", http.StatusInternalServerError)
 		return
 	}
-	res.WriteHeader(http.StatusOK)
+	http.Redirect(res, req, "/scene/", http.StatusSeeOther)
 }
 
 func updateScene(res http.ResponseWriter, req *http.Request) {
@@ -123,7 +123,7 @@ func updateScene(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	res.WriteHeader(http.StatusOK)
+	http.Redirect(res, req, "/scene/", http.StatusSeeOther)
 }
 
 func applyScene(res http.ResponseWriter, req *http.Request) {

@@ -1,21 +1,24 @@
 import Databind from "./databind.js";
 
 // We need this to be able to get started
-document.getElementById("addScene").addEventListener("click", async () => {
-  if (
-    await call("/scene/", {
+document.getElementById("addScene").addEventListener("click", () =>
+  call(
+    "/scene/",
+    {
       method: "PUT",
-    })
+    },
+    true
   )
-    document.location.reload();
-});
+);
 
 // Put the rest of the stuff in motion
+let globalState;
 const data = await loadDataObject();
 if (data != null) {
-  const dataProxy = new Databind("body", data);
+  const dataProxy = new Databind("body", data, { immediate: true });
+  globalState = dataProxy.data;
   applyRelationships(dataProxy);
-  registerEventHandlers(dataProxy.data);
+  registerEventHandlers();
   connectToSSE();
 }
 document.querySelector(".overlay").classList.add("hidden");
@@ -61,6 +64,22 @@ function applyRelationships(dataProxy) {
   dataProxy.addEventListener("change", (path, oldVal, newVal) => {
     console.info(`Change at ${path} from ${oldVal} to ${newVal}`);
     switch (path) {
+      case "scenes":
+        // If we add a new scene to the list, select it in the UI (bit of a
+        // hack, since scenes can be added by other users, but we're kinda
+        // assuming single-user operation anyway)
+        if (oldVal.length < newVal.length)
+          data.selectedScene = data.scenes[data.scenes.length - 1];
+
+        // Refresh the data in our selected scene with the latest info received
+        // from the server (which may delete the current scene)
+        let selected = data.scenes.find(
+          (scene) => scene.uuid == data.selectedScene.uuid
+        );
+        if (!selected) selected = data.scenes[0];
+        data.selectedScene = selected;
+        break;
+
       case "selectedScene.brightness":
         // Check the change brightness checkbox if slider moved
         data.selectedScene.changeBrightness = true;
@@ -95,7 +114,7 @@ function applyRelationships(dataProxy) {
         break;
     }
 
-    if (data.autoPreview) {
+    if (data.autoPreview && path.startsWith("selectedScene")) {
       call("/apply/preview", {
         method: "POST",
         body: JSON.stringify(data.selectedScene),
@@ -108,7 +127,7 @@ function toId(name) {
   return encodeURI(name.toLowerCase().replaceAll(" ", "-"));
 }
 
-function registerEventHandlers(data) {
+function registerEventHandlers() {
   document
     .getElementById("syncTime")
     .addEventListener("click", () => call("/apply/syncTime"));
@@ -116,25 +135,30 @@ function registerEventHandlers(data) {
   document.getElementById("preview").addEventListener("click", () =>
     call("/apply/preview", {
       method: "POST",
-      body: JSON.stringify(data.selectedScene),
+      body: JSON.stringify(globalState.selectedScene),
     })
   );
 
   document.getElementById("save").addEventListener("click", () =>
-    call("/scene/" + data.selectedScene.uuid, {
-      method: "POST",
-      body: JSON.stringify(data.selectedScene),
-    })
+    call(
+      "/scene/" + globalState.selectedScene.uuid,
+      {
+        method: "POST",
+        body: JSON.stringify(globalState.selectedScene),
+      },
+      true
+    )
   );
 
-  document.getElementById("deleteScene").addEventListener("click", async () => {
-    if (
-      await call("/scene/" + data.selectedScene.uuid, {
+  document.getElementById("deleteScene").addEventListener("click", () =>
+    call(
+      "/scene/" + globalState.selectedScene.uuid,
+      {
         method: "DELETE",
-      })
+      },
+      true
     )
-      document.location.reload();
-  });
+  );
 }
 
 function connectToSSE() {
@@ -144,18 +168,19 @@ function connectToSSE() {
   });
 }
 
-async function call(url, payload) {
+async function call(url, payload, updateScenes = false) {
+  let response;
   try {
-    const response = await fetch(url, payload);
+    response = await fetch(url, payload);
     if (!response.ok) {
-      showMessage(await response.text(), true);
-      return false;
+      return showMessage(await response.text(), true);
     }
   } catch (e) {
-    showMessage(e, true);
-    return false;
+    return showMessage(e, true);
   }
-  return true;
+  if (updateScenes) {
+    globalState.scenes = await response.json();
+  }
 }
 
 function showMessage(message, error = false) {
