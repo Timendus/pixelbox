@@ -1,4 +1,4 @@
-export default class DataProxy {
+export class DataProxy {
   constructor(data) {
     this._listeners = [];
     this.data = new Wrapper(data, [], (path, oldVal, newVal) =>
@@ -20,7 +20,7 @@ export default class DataProxy {
   /* API for databind.js */
 
   store(path, value) {
-    if (!this.validPathString(path))
+    if (!validPathString(path))
       throw new Error("attempted to store to invalid path");
 
     // Find the right place in the object hierarchy based on the path
@@ -42,15 +42,11 @@ export default class DataProxy {
       throw new Error(`Data object has no property ${leaf} for path ${path}`);
     }
 
-    if (target[leaf] == null) {
-      target[leaf] = this.toValue(value);
-    } else {
-      target[leaf] = this._cast(value, typeof target[leaf]);
-    }
+    target[leaf] = cast(value, target[leaf]);
   }
 
   retrieve(path) {
-    if (!this.validPathString(path))
+    if (!validPathString(path))
       throw new Error("attempted to retrieve from invalid path: " + path);
     const parts = path.split(".");
     let target = this.data;
@@ -63,19 +59,6 @@ export default class DataProxy {
     return target;
   }
 
-  validPathString(path) {
-    if (typeof path != "string") return false;
-    // A valid property of an object may not start with a number, but we do
-    // accept number-only indices for arrays
-    const validStartChar = "[a-zA-Z_]";
-    const validFollowingChar = "[a-zA-Z_0-9]";
-    const validIndex = "[0-9]+";
-    const validProperty = `(${validStartChar}+${validFollowingChar}*|${validIndex})`;
-    // We're looking for at least one valid property, or a chain of valid
-    // properties separated by periods.
-    return path.match(`^${validProperty}(\\.${validProperty})*$`) != null;
-  }
-
   pathExists(path) {
     try {
       this.retrieve(path);
@@ -84,43 +67,61 @@ export default class DataProxy {
       return false;
     }
   }
+}
 
-  toValue(expression) {
-    switch (expression) {
-      case "undefined":
-        return undefined;
-      case "true":
-        return true;
-      case "false":
-        return false;
-    }
-    const number = Number.parseFloat(expression);
-    if (!isNaN(number)) {
-      return number;
-    }
-    return expression;
+function validPathString(path) {
+  if (typeof path != "string") return false;
+  // A valid property of an object may not start with a number, but we do
+  // accept number-only indices for arrays
+  const validStartChar = "[a-zA-Z_]";
+  const validFollowingChar = "[a-zA-Z_0-9]";
+  const validIndex = "[0-9]+";
+  const validProperty = `(${validStartChar}+${validFollowingChar}*|${validIndex})`;
+  // We're looking for at least one valid property, or a chain of valid
+  // properties separated by periods.
+  return path.match(`^${validProperty}(\\.${validProperty})*$`) != null;
+}
+
+function cast(value, oldValue) {
+  if (oldValue === null) {
+    // Because `typeof null == "object"` :(
+    oldValue = undefined;
   }
-
-  /* Internal helpers */
-
-  _cast(value, type) {
-    switch (type) {
-      case "number":
-        return Number.parseFloat(value);
-      case "string":
-        return `${value}`;
-      case "boolean":
-        return !!value;
-      case "undefined":
-        // The target has no type, so try to infer from the value itself
-        return this.toValue(value);
-      case "object":
-        if (typeof value == "object") return value;
-      // else fall through to default
-      default:
-        throw new Error(`Can't cast a value to type ${type}`);
-    }
+  switch (typeof oldValue) {
+    case "number":
+      return Number.parseFloat(value);
+    case "string":
+      return `${value}`;
+    case "boolean":
+      return !!value;
+    case "undefined":
+      // The target has no type, so try to infer from the value itself
+      return toValue(value);
+    case "object":
+      if (typeof value == "object") {
+        return value;
+      } else {
+        // fall through to default below
+      }
+    default:
+      throw new Error(`Can't cast a value to type ${type}`);
   }
+}
+
+export function toValue(expression) {
+  switch (expression) {
+    case "undefined":
+      return undefined;
+    case "true":
+      return true;
+    case "false":
+      return false;
+  }
+  const number = Number.parseFloat(expression);
+  if (!isNaN(number)) {
+    return number;
+  }
+  return expression;
 }
 
 class Wrapper {

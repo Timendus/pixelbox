@@ -1,4 +1,4 @@
-import DataProxy from "./dataproxy.js";
+import { DataProxy, toValue } from "./dataproxy.js";
 
 export default class Databind {
   constructor(scope, data, options = {}) {
@@ -6,12 +6,13 @@ export default class Databind {
     this._data = new DataProxy(data);
     this._data.addEventListener("change", (p) => this._applyValue(p));
     this._options = this._normalizeOptions(options);
-    this._prepareLoops();
 
     // Register for form element change events
-    if (this._options.immediate)
+    if (this._options.immediate) {
       document.addEventListener("input", (e) => this._handleChange(e));
-    else document.addEventListener("change", (e) => this._handleChange(e));
+    } else {
+      document.addEventListener("change", (e) => this._handleChange(e));
+    }
 
     // Register for click events
     document.addEventListener("click", (e) => this._handleClick(e));
@@ -40,105 +41,6 @@ export default class Databind {
       },
       options
     );
-  }
-
-  _prepareLoops() {
-    document
-      .querySelectorAll(`${this._scope} [${this._options.loop}]`)
-      .forEach((e) => {
-        const attribute = e.getAttribute(this._options.loop);
-        const expression = this._parseExpression(attribute);
-
-        if (
-          !(
-            expression.type == "assignment" &&
-            expression.assigned.type == "path"
-          )
-        )
-          return console.error(
-            `Expected assignment of path in ${this._options.loop} in ${attribute}`
-          );
-
-        if (!Array.isArray(expression.value))
-          return console.error(
-            `Invalid expression in ${this._options.loop}: Can't iterate over ${expression.assigned.path}`
-          );
-
-        e.setAttribute(this._options.read, expression.assigned.path);
-        e.originalExpression = expression;
-        e.originalContents = e.innerHTML;
-        e.innerHTML = "";
-      });
-  }
-
-  _handleChange(evnt) {
-    // Which element changed?
-    const target = evnt.target.closest(
-      `${this._scope} [${this._options.bind}], ${this._scope} [${this._options.write}]`
-    );
-    if (!target) return;
-
-    // Apply the changes to the data object
-    this._apply(target.getAttribute(this._options.bind), target);
-    this._apply(target.getAttribute(this._options.write), target);
-
-    if (this._options.stopEvents) {
-      // We're done with this event, don't try to evaluate it any further
-      evnt.preventDefault();
-      evnt.stopPropagation();
-    }
-  }
-
-  // Write changes from DOM to data object, based on expression
-  _apply(attribute, target) {
-    if (!attribute) return;
-    try {
-      const expression = this._parseExpression(attribute);
-      if (!expression.type == "path") {
-        return console.error("Expected path");
-      }
-
-      let value;
-      if (target.matches("input[type=checkbox")) {
-        value = target.checked;
-      } else if ("value" in target) {
-        value = target.value;
-      } else throw new Error("no value to write to data object");
-
-      this._data.store(expression.path, value);
-    } catch (e) {
-      console.error(e);
-    }
-  }
-
-  _handleClick(evnt) {
-    // Which element was clicked?
-    const target = evnt.target.closest(
-      `${this._scope} [${this._options.click}]`
-    );
-    if (!target) return;
-
-    // Apply the changes to the data object
-    // this._apply(target.getAttribute(this._options.click), target);
-    const attribute = target.getAttribute(this._options.click);
-    const expression = this._parseExpression(attribute);
-
-    if (!expression.type == "assignment")
-      return console.error(
-        `Expected assignment in ${this._options.click}, got ${attribute}`
-      );
-
-    try {
-      this._data.store(expression.assignee, expression.value);
-    } catch (e) {
-      console.error(e);
-    }
-
-    if (this._options.stopEvents) {
-      // We're done with this event, don't try to evaluate it any further
-      evnt.preventDefault();
-      evnt.stopPropagation();
-    }
   }
 
   _parseExpression(expression) {
@@ -192,7 +94,7 @@ export default class Databind {
     try {
       return {
         type: "value",
-        value: this._data.toValue(expression),
+        value: toValue(expression),
       };
     } catch (e) {}
 
@@ -201,49 +103,130 @@ export default class Databind {
     };
   }
 
-  // Write changes from data object to DOM
+  /* DOM --> data object */
+
+  _handleChange(evnt) {
+    // Which element changed?
+    const target = evnt.target.closest(
+      `${this._scope} [${this._options.bind}], ${this._scope} [${this._options.write}]`
+    );
+    if (!target) return;
+
+    // Apply the changes to the data object
+    this._apply(target.getAttribute(this._options.bind), target);
+    this._apply(target.getAttribute(this._options.write), target);
+
+    if (this._options.stopEvents) {
+      // We're done with this event, don't try to evaluate it any further
+      evnt.preventDefault();
+      evnt.stopPropagation();
+    }
+  }
+
+  _apply(attribute, target) {
+    if (!attribute) return;
+    try {
+      const expression = this._parseExpression(attribute);
+      if (!expression.type == "path") {
+        return console.error("Expected path");
+      }
+
+      let value;
+      if (target.matches("input[type=checkbox")) {
+        value = target.checked;
+      } else if ("value" in target) {
+        value = target.value;
+      } else throw new Error("no value to write to data object");
+
+      this._data.store(expression.path, value);
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  _handleClick(evnt) {
+    // Which element was clicked?
+    const target = evnt.target.closest(
+      `${this._scope} [${this._options.click}]`
+    );
+    if (!target) return;
+
+    // Apply the changes to the data object
+    const attribute = target.getAttribute(this._options.click);
+    const expression = this._parseExpression(attribute);
+
+    if (!expression.type == "assignment")
+      return console.error(
+        `Expected assignment in ${this._options.click}, got ${attribute}`
+      );
+
+    try {
+      this._data.store(expression.assignee, expression.value);
+    } catch (e) {
+      console.error(e);
+    }
+
+    if (this._options.stopEvents) {
+      // We're done with this event, don't try to evaluate it any further
+      evnt.preventDefault();
+      evnt.stopPropagation();
+    }
+  }
+
+  /* Data object --> DOM */
+
   _applyValue(path) {
-    // Update values (for bound form elements)
+    // Lists need to be done first, so elements in the lists get updates too.
+    // For the rest the order doesn't matter.
+    this._applyLists(path);
+    this._applyReads(path);
+    this._applyBinds(path);
+    this._applyClasses(path);
+  }
+
+  _applyReads(path) {
+    // Update values in `read` elements
     document
-      .querySelectorAll(
-        `${this._scope} [${this._options.read}], ${this._scope} [${this._options.bind}]`
-      )
+      .querySelectorAll(`${this._scope} [${this._options.read}]`)
       .forEach((e) => {
         const readExpression = e.getAttribute(this._options.read);
-        if (readExpression && (path == null || readExpression.includes(path))) {
-          const expression = this._parseExpression(readExpression);
-          if (expression.type == "unparseable")
-            return console.error(
-              "Could not parse expression: " + readExpression
-            );
-          if (e.matches("input[type=checkbox")) {
-            e.checked = expression.value;
-          } else if ("value" in e) {
-            e.value = expression.value;
-          } else if (e.originalExpression && e.originalContents) {
-            this._updateList(e);
-          } else if ("innerText" in e) {
-            e.innerText = expression.value;
-          } else
-            throw new Error("don't know how to write value to DOM element");
-        }
+        if (path != null && !readExpression.includes(path)) return;
+        const expression = this._parseExpression(readExpression);
 
-        const bindExpression = e.getAttribute(this._options.bind);
-        if (bindExpression && (path == null || bindExpression.includes(path))) {
-          const expression = this._parseExpression(bindExpression);
-          if (expression.type == "unparseable")
-            return console.error(
-              "Could not parse expression: " + bindExpression
-            );
-          if (e.matches("input[type=checkbox")) {
-            e.checked = expression.value;
-          } else if ("value" in e) {
-            e.value = expression.value;
-          } else
-            throw new Error("don't know how to write value to DOM element");
-        }
+        if (expression.type == "unparseable")
+          return console.error("Could not parse expression: " + readExpression);
+
+        if (e.matches("input[type=checkbox")) {
+          e.checked = expression.value;
+        } else if ("value" in e) {
+          e.value = expression.value;
+        } else if ("innerText" in e) {
+          e.innerText = expression.value;
+        } else throw new Error("don't know how to write value to DOM element");
       });
+  }
 
+  _applyBinds(path) {
+    // Update values in `bind` elements
+    document
+      .querySelectorAll(`${this._scope} [${this._options.bind}]`)
+      .forEach((e) => {
+        const bindExpression = e.getAttribute(this._options.bind);
+        if (path != null && !bindExpression.includes(path)) return;
+        const expression = this._parseExpression(bindExpression);
+
+        if (expression.type == "unparseable")
+          return console.error("Could not parse expression: " + bindExpression);
+
+        if (e.matches("input[type=checkbox")) {
+          e.checked = expression.value;
+        } else if ("value" in e) {
+          e.value = expression.value;
+        } else throw new Error("don't know how to write value to DOM element");
+      });
+  }
+
+  _applyClasses(path) {
     // Update classes (for active-if expressions)
     document
       .querySelectorAll(`${this._scope} [${this._options.activeIf}]`)
@@ -251,40 +234,63 @@ export default class Databind {
         const activeIfExpression = e.getAttribute(this._options.activeIf);
         if (path != null && !activeIfExpression.includes(path)) return;
         const expression = this._parseExpression(activeIfExpression);
+
         if (expression.type == "unparseable")
           return console.error(
             "Could not parse expression: " + activeIfExpression
           );
+
         e.classList.toggle("active", !!expression.value);
       });
   }
 
-  _updateList(target) {
-    const variable = target.originalExpression.assignee;
-    const list = this._data.retrieve(target.originalExpression.assigned.path);
+  _applyLists(path) {
+    // Update loops to have all the right elements in them
+    document
+      .querySelectorAll(`${this._scope} [${this._options.loop}]`)
+      .forEach((e) => {
+        const loopExpression = e.getAttribute(this._options.loop);
+        if (path != null && !loopExpression.includes(path)) return;
+        const expression = this._parseExpression(loopExpression);
 
-    // Remove DOM elements if we have too many items
-    if (target.children.length > list.length)
-      target.children = target.children.slice(0, list.length);
+        if (
+          !(
+            expression.type == "assignment" &&
+            expression.assigned.type == "path"
+          )
+        )
+          return console.error(
+            `Expected assignment of path in ${this._options.loop} in ${attribute}`
+          );
 
-    for (let i = 0; i < list.length; i++) {
-      const element = target.children[i];
-      const ideal = this._toConcreteDOM(target.originalContents, i, variable);
-      if (!element) {
-        // First load or items have been added:
-        // insert `ideal` into the list element
-        target.appendChild(ideal);
-      } else {
-        // Merge changes in `ideal` into `element`
-        // TODO!
-      }
-    }
+        if (!Array.isArray(expression.value))
+          return console.error(
+            `Invalid expression in ${this._options.loop}: Can't iterate over ${expression.assigned.path}`
+          );
 
-    // Trigger filling in the values from the data object somehow
-    // this._applyValue();
+        // If this is the first time we see this, save original DOM contents as
+        // a template for adding child elements
+        if (!e.originalContents) {
+          e.originalContents = e.innerHTML;
+          e._listLength = 0;
+        }
+
+        const variable = expression.assignee;
+        const list = this._data.retrieve(expression.assigned.path);
+        if (list.length == e._listLength) return;
+
+        // Rebuild sub-tree
+        e.innerHTML = "";
+        for (let i = 0; i < list.length; i++) {
+          e.appendChild(
+            this._renderListTemplate(e.originalContents, i, variable)
+          );
+        }
+        e._listLength = list.length;
+      });
   }
 
-  _toConcreteDOM(html, index, variable) {
+  _renderListTemplate(html, index, variable) {
     // Create safe regexp to find variable name
     variable = variable.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
     const re = new RegExp(`(?<!\\w)${variable}(?!\\w)`, "g");
