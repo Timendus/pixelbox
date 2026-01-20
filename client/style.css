@@ -106,16 +106,21 @@ main > header {
     color: var(--light-text-color);
   }
 
-  & label {
+  & div {
     display: flex;
-    width: 200px;
-    min-height: 3em;
     gap: 1em;
-    justify-content: center;
-    align-items: center;
 
-    border-radius: 1.5em;
-    background-color: var(--background-3-color);
+    & label {
+      display: flex;
+      width: 200px;
+      min-height: 3em;
+      gap: 1em;
+      justify-content: center;
+      align-items: center;
+
+      border-radius: 1.5em;
+      background-color: var(--background-3-color);
+    }
   }
 }
 
@@ -127,73 +132,78 @@ main > aside {
   padding: 0 2em;
   border-right: 1px solid var(--border-color);
 
-  h2 {
-    margin: 2em 0;
+  & .messages-container,
+  & .scenes-container {
+    display: flex;
+    flex-direction: column;
+    height: 50%;
+
+    & h2 {
+      margin: 2em 0;
+    }
   }
 
-  & ul.scenes {
-    margin: 0 0 2em 0;
-    list-style-type: none;
-    /* border-top: 1px solid var(--border-color); */
+  & .scenes-container {
+    & ul.scenes {
+      margin: 0 0 2em 0;
+      list-style-type: none;
+      overflow-y: auto;
 
-    & > li {
-      border-bottom: 1px solid var(--border-color);
+      & > li {
+        border-bottom: 1px solid var(--border-color);
 
-      &:last-child {
-        border-bottom: none;
-      }
+        &:last-child {
+          border-bottom: none;
+        }
 
-      & > a {
-        display: block;
-        padding: 1em;
-        min-height: 3em;
-        background-color: var(--background-3-color);
-        color: white;
-        text-decoration: none;
+        & > a {
+          display: block;
+          padding: 1em;
+          min-height: 3em;
+          background-color: var(--background-3-color);
+          color: white;
+          text-decoration: none;
+          cursor: pointer;
 
-        &:hover {
-          background-color: var(--background-3-blue-color);
+          &:hover {
+            background-color: var(--background-3-blue-color);
+          }
         }
       }
     }
   }
 
   & .messages-container {
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-  }
+    & ul.messages {
+      margin: -1em 0 2em 0;
+      list-style-type: none;
+      overflow-y: auto;
 
-  & ul.messages {
-    margin: -2em 0 2em 0;
-    list-style-type: none;
-    height: 100%;
-    overflow-y: auto;
+      & li {
+        position: relative;
+        padding: 1em 0;
 
-    & li {
-      position: relative;
-      padding: 1em 0;
+        font-family: "Courier New", Courier, monospace;
+        border-bottom: 1px solid var(--border-color);
+        color: var(--light-text-color);
 
-      font-family: "Courier New", Courier, monospace;
-      border-bottom: 1px solid var(--border-color);
-      color: var(--light-text-color);
+        &:last-child {
+          border-bottom: none;
+        }
+        &:after {
+          content: attr(data-time);
+          display: block;
+          position: absolute;
+          right: 1em;
+          bottom: 0;
 
-      &:last-child {
-        border-bottom: none;
-      }
-      &:after {
-        content: attr(data-time);
-        display: block;
-        position: absolute;
-        right: 1em;
-        bottom: 0;
-
-        font-size: 0.8em;
-        text-align: right;
-        color: var(--timestamp-text-color);
-      }
-      &.error {
-        color: var(--error-text-color);
+          font-size: 0.8em;
+          text-align: right;
+          color: var(--timestamp-text-color);
+        }
+        &.error {
+          color: var(--error-text-color);
+        }
       }
     }
   }

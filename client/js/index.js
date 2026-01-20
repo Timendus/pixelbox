@@ -28,6 +28,7 @@ document.querySelector(".overlay").classList.add("hidden");
 async function loadDataObject() {
   const data = {
     autoPreview: true,
+    showMessages: false,
     scenes: [],
     selectedScene: {},
   };
@@ -191,5 +192,4 @@ function showMessage(message, error = false) {
   item.classList.toggle("error", error);
   const firstItem = document.querySelector("#messages > li");
   document.getElementById("messages").insertBefore(item, firstItem);
-  document.getElementById("messagesContainer").classList.remove("hidden");
 }

@@ -12,25 +12,37 @@
     <main>
       <header>
         <h1>PixelBox</h1>
-        <label>
-          <input type="checkbox" data-bind="autoPreview" />
-          Auto-preview
-        </label>
+        <div>
+          <label>
+            <input type="checkbox" data-bind="autoPreview" />
+            Auto-preview
+          </label>
+          <label>
+            <input type="checkbox" data-bind="showMessages" />
+            Show debug info
+          </label>
+        </div>
       </header>
 
       <aside>
-        <h2>Scenes</h2>
-        <ul class="scenes" data-loop="index=scenes">
-          <li>
-            <a
-              data-click="selectedScene=scenes.index"
-              data-read="scenes.index.name"
-            ></a>
-          </li>
-        </ul>
-        <button class="primary" id="addScene">+ Add scene</button>
+        <div class="scenes-container">
+          <h2>Scenes</h2>
+          <ul class="scenes" data-loop="index=scenes">
+            <li>
+              <a
+                data-click="selectedScene=scenes.index"
+                data-read="scenes.index.name"
+              ></a>
+            </li>
+          </ul>
+          <button class="primary" id="addScene">+ Add scene</button>
+        </div>
 
-        <div class="messages-container hidden" id="messagesContainer">
+        <div
+          class="messages-container hidden"
+          data-active-if="showMessages"
+          id="messagesContainer"
+        >
           <h2>Messages</h2>
           <ul id="messages" class="messages"></ul>
         </div>
