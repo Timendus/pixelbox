@@ -75,7 +75,7 @@ func decodeMessage(bytes []byte) (*Message, error) {
 	case channelSet:
 		if len(message.Data) >= 1 {
 			message.CurrentChannel = message.Data[0]
-			message.HumanDescription = fmt.Sprintf("Set channel to %d", message.CurrentChannel)
+			message.HumanDescription = fmt.Sprintf("Set channel to %d (%s)", message.CurrentChannel, reverseChannels[message.CurrentChannel])
 		}
 	case brightnessSet:
 		if len(message.Data) >= 1 {

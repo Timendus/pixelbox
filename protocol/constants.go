@@ -41,6 +41,7 @@ var channels = map[string]byte{
 	"VISUALISATION": 4,
 	"ANIMATION":     5,
 	"SCOREBOARD":    6,
+	"IMAGE":         85,
 }
 
 var reverseChannels = func() map[byte]string {
