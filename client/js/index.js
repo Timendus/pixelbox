@@ -1,4 +1,10 @@
 import Databind from "./databind.js";
+import {
+  getImagePixels,
+  getAnimationFrames,
+  animationFramesToCanvas,
+  imagePixelsToCanvas,
+} from "./images.js";
 
 // We need this to be able to get started
 document.getElementById("addScene").addEventListener("click", () =>
@@ -15,7 +21,31 @@ document.getElementById("addScene").addEventListener("click", () =>
 let globalState;
 const data = await loadDataObject();
 if (data != null) {
-  const dataProxy = new Databind("body", data, { immediate: true });
+  const dataProxy = new Databind("body", data, {
+    immediate: true,
+    customConversions: [
+      {
+        selector: "canvas#imageCanvas",
+        toDom: (path, newVal, elm) => {
+          if (!newVal) {
+            imagePixelsToCanvas(new Array(16 * 16 * 4), elm);
+          } else {
+            imagePixelsToCanvas(newVal, elm);
+          }
+        },
+      },
+      {
+        selector: "canvas#animationCanvas",
+        toDom: (path, newVal, elm) => {
+          if (!newVal) {
+            animationFramesToCanvas([{ pixels: new Array(16 * 16 * 4) }], elm);
+          } else {
+            animationFramesToCanvas(newVal, elm);
+          }
+        },
+      },
+    ],
+  });
   globalState = dataProxy.data;
   applyRelationships(dataProxy);
   registerEventHandlers();
@@ -160,6 +190,27 @@ function registerEventHandlers() {
       true
     )
   );
+
+  document.getElementById("imageFile").addEventListener("change", async (e) => {
+    if (e.target.files.length != 1) {
+      return showMessage("Expected user to select an image file", true);
+    }
+    globalState.selectedScene.image.pixels = await getImagePixels(
+      e.target.files[0]
+    );
+  });
+
+  document
+    .getElementById("animationFile")
+    .addEventListener("change", async (e) => {
+      if (e.target.files.length != 1) {
+        return showMessage("Expected user to select an image file", true);
+      }
+      globalState.selectedScene.animation.frames = await getAnimationFrames(
+        e.target.files[0]
+      );
+    });
+
 }
 
 function connectToSSE() {
@@ -192,4 +243,5 @@ function showMessage(message, error = false) {
   item.classList.toggle("error", error);
   const firstItem = document.querySelector("#messages > li");
   document.getElementById("messages").insertBefore(item, firstItem);
+  if (error) globalState.showMessages = true;
 }
