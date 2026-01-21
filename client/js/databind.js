@@ -30,6 +30,7 @@ export default class Databind {
         class: "active",
         stopEvents: true,
         immediate: false,
+        customConversions: [],
 
         // Attribute names
         bind: "data-bind",
@@ -132,6 +133,14 @@ export default class Databind {
       }
 
       let value;
+      for (const conv of this._options.customConversions) {
+        if (target.matches(conv.selector) && conv.fromDom) {
+          value = conv.fromDom(expression.path, target);
+          this._data.store(expression.path, value);
+          return;
+        }
+      }
+
       if (target.matches("input[type=checkbox")) {
         value = target.checked;
       } else if ("value" in target) {
@@ -196,6 +205,13 @@ export default class Databind {
         if (expression.type == "unparseable")
           return console.error("Could not parse expression: " + readExpression);
 
+        for (const conv of this._options.customConversions) {
+          if (e.matches(conv.selector) && conv.toDom) {
+            conv.toDom(path, expression.value, e);
+            return;
+          }
+        }
+
         if (e.matches("input[type=checkbox")) {
           e.checked = expression.value;
         } else if ("value" in e) {
@@ -217,6 +233,13 @@ export default class Databind {
 
         if (expression.type == "unparseable")
           return console.error("Could not parse expression: " + bindExpression);
+
+        for (const conv of this._options.customConversions) {
+          if (e.matches(conv.selector) && conv.toDom) {
+            conv.toDom(path, expression.value, e);
+            return;
+          }
+        }
 
         if (e.matches("input[type=checkbox")) {
           e.checked = expression.value;
