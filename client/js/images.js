@@ -43,6 +43,12 @@ export function imagePixelsToCanvas(byteArray, canvas) {
   context.putImageData(imageData, 0, 0);
 }
 
+export function canvasToImagePixels(canvas) {
+  const context = canvas.getContext("2d");
+  const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+  return [...imageData.data];
+}
+
 export function animationFramesToCanvas(frames, canvas) {
   animationCanvas = canvas;
   animationFrames = frames;
@@ -52,6 +58,14 @@ export function animationFramesToCanvas(frames, canvas) {
     startAnimation();
     animationRunning = true;
   }
+}
+
+export const emptyImageArray = new Array(16 * 16 * 4);
+for (let i = 0; i < emptyImageArray.length; i += 4) {
+  emptyImageArray[i + 0] = 0;
+  emptyImageArray[i + 1] = 0;
+  emptyImageArray[i + 2] = 0;
+  emptyImageArray[i + 3] = 255;
 }
 
 function loadFile(file) {

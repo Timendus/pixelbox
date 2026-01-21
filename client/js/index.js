@@ -1,9 +1,11 @@
 import Databind from "./databind.js";
 import {
+  imagePixelsToCanvas,
+  animationFramesToCanvas,
   getImagePixels,
   getAnimationFrames,
-  animationFramesToCanvas,
-  imagePixelsToCanvas,
+  canvasToImagePixels,
+  emptyImageArray,
 } from "./images.js";
 
 // We need this to be able to get started
@@ -19,6 +21,7 @@ document.getElementById("addScene").addEventListener("click", () =>
 
 // Put the rest of the stuff in motion
 let globalState;
+let drawing;
 const data = await loadDataObject();
 if (data != null) {
   const dataProxy = new Databind("body", data, {
@@ -27,8 +30,9 @@ if (data != null) {
       {
         selector: "canvas#imageCanvas",
         toDom: (path, newVal, elm) => {
+          if (drawing) return;
           if (!newVal) {
-            imagePixelsToCanvas(new Array(16 * 16 * 4), elm);
+            imagePixelsToCanvas(emptyImageArray, elm);
           } else {
             imagePixelsToCanvas(newVal, elm);
           }
@@ -37,8 +41,9 @@ if (data != null) {
       {
         selector: "canvas#animationCanvas",
         toDom: (path, newVal, elm) => {
+          if (drawing) return;
           if (!newVal) {
-            animationFramesToCanvas([{ pixels: new Array(16 * 16 * 4) }], elm);
+            animationFramesToCanvas([{ pixels: emptyImageArray }], elm);
           } else {
             animationFramesToCanvas(newVal, elm);
           }
@@ -223,7 +228,7 @@ function registerEventHandlers() {
 
   const canvas = document.querySelector("canvas#imageCanvas");
   const context = canvas.getContext("2d");
-  let pixWidth, pixHeight, selectedTool, drawing;
+  let pixWidth, pixHeight, selectedTool;
 
   canvas.addEventListener("mousedown", (e) => {
     const rect = canvas.getClientRects();
@@ -266,6 +271,7 @@ function registerEventHandlers() {
       1,
       1
     );
+    globalState.selectedScene.image.pixels = canvasToImagePixels(canvas);
   });
 
   canvas.addEventListener("mousemove", (e) => {
@@ -276,6 +282,7 @@ function registerEventHandlers() {
       1,
       1
     );
+    globalState.selectedScene.image.pixels = canvasToImagePixels(canvas);
   });
 
   canvas.addEventListener("mouseup", (e) => {
