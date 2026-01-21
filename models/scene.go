@@ -3,6 +3,7 @@ package models
 import (
 	"encoding/json"
 	"fmt"
+	"image"
 	"log"
 	"os"
 	"path/filepath"
@@ -31,6 +32,8 @@ type Scene struct {
 	Calendar         Calendar    `json:"calendar"`
 	Light            Light       `json:"light"`
 	Effect           Effect      `json:"effect"`
+	Image            Image       `json:"image"`
+	Animation        Animation   `json:"animation"`
 }
 
 type Clock struct {
@@ -64,6 +67,19 @@ type Effect struct {
 	VisualisationType *int   `json:"visualisationType"`
 	ScoreRedPlayer    *int   `json:"scoreRedPlayer"`
 	ScoreBluePlayer   *int   `json:"scoreBluePlayer"`
+}
+
+type Image struct {
+	Pixels []int `json:"pixels"`
+}
+
+type Animation struct {
+	Frames []Frame `json:"frames"`
+}
+
+type Frame struct {
+	Duration int   `json:"duration"`
+	Pixels   []int `json:"pixels"`
 }
 
 /* Scene storage stuff */
@@ -156,6 +172,9 @@ func (scene *Scene) Update(newScene *Scene) error {
 	scene.Calendar = newScene.Calendar
 	scene.Light = newScene.Light
 	scene.Effect = newScene.Effect
+
+	scene.Image = newScene.Image
+	scene.Animation = newScene.Animation
 
 	return scene.writeToFile()
 }
@@ -310,8 +329,38 @@ func (scene *Scene) ToMessage() ([]byte, error) {
 		}
 
 	case "image":
+		img := image.NewRGBA(image.Rectangle{
+			Min: image.Point{X: 0, Y: 0},
+			Max: image.Point{X: 16, Y: 16},
+		})
+		for i, v := range scene.Image.Pixels {
+			img.Pix[i] = byte(v)
+		}
+		msg, err := protocol.ShowImage(img)
+		if err != nil {
+			return nil, err
+		}
+		result = append(result, msg...)
 
 	case "animation":
+		frames := make([]*image.RGBA, 0)
+		durations := make([]int, 0)
+		for _, f := range scene.Animation.Frames {
+			img := image.NewRGBA(image.Rectangle{
+				Min: image.Point{X: 0, Y: 0},
+				Max: image.Point{X: 16, Y: 16},
+			})
+			for i, v := range f.Pixels {
+				img.Pix[i] = byte(v)
+			}
+			frames = append(frames, img)
+			durations = append(durations, f.Duration)
+		}
+		msg, err := protocol.ShowAnimation(frames, durations)
+		if err != nil {
+			return nil, err
+		}
+		result = append(result, msg...)
 
 	}
 
