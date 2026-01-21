@@ -57,6 +57,11 @@ document.querySelector(".overlay").classList.add("hidden");
 
 async function loadDataObject() {
   const data = {
+    paint: {
+      tool: "pen",
+      fgColor: "#ffffff",
+      bgColor: "#000000",
+    },
     autoPreview: true,
     showMessages: false,
     scenes: [],
@@ -216,6 +221,73 @@ function registerEventHandlers() {
       );
     });
 
+  const canvas = document.querySelector("canvas#imageCanvas");
+  const context = canvas.getContext("2d");
+  let pixWidth, pixHeight, selectedTool, drawing;
+
+  canvas.addEventListener("mousedown", (e) => {
+    const rect = canvas.getClientRects();
+    pixWidth = rect[0].width / 16;
+    pixHeight = rect[0].height / 16;
+
+    if (globalState.paint.tool == "picker") {
+      const imageData = context.getImageData(
+        Math.floor(e.offsetX / pixWidth),
+        Math.floor(e.offsetY / pixHeight),
+        1,
+        1
+      );
+      const r = imageData.data[0].toString(16).padStart(2, 0);
+      const g = imageData.data[1].toString(16).padStart(2, 0);
+      const b = imageData.data[2].toString(16).padStart(2, 0);
+      if (e.button == 2) {
+        globalState.paint.bgColor = `#${r}${g}${b}`;
+      } else {
+        globalState.paint.fgColor = `#${r}${g}${b}`;
+      }
+      globalState.paint.tool = "pen";
+      return;
+    }
+
+    selectedTool = globalState.paint.tool;
+    if (e.button == 2) {
+      globalState.paint.tool = "eraser";
+    }
+
+    drawing = true;
+    context.fillStyle =
+      globalState.paint.tool == "pen"
+        ? globalState.paint.fgColor
+        : globalState.paint.bgColor;
+
+    context.fillRect(
+      Math.floor(e.offsetX / pixWidth),
+      Math.floor(e.offsetY / pixHeight),
+      1,
+      1
+    );
+  });
+
+  canvas.addEventListener("mousemove", (e) => {
+    if (!drawing) return;
+    context.fillRect(
+      Math.floor(e.offsetX / pixWidth),
+      Math.floor(e.offsetY / pixHeight),
+      1,
+      1
+    );
+  });
+
+  canvas.addEventListener("mouseup", (e) => {
+    drawing = false;
+    globalState.paint.tool = selectedTool;
+  });
+
+  canvas.addEventListener("contextmenu", (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    return false;
+  });
 }
 
 function connectToSSE() {

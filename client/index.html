@@ -269,10 +269,61 @@
             </div>
 
             <div class="hidden" data-active-if="selectedScene.sceneType==image">
-              <label>
-                Upload image:
-                <input type="file" />
+              <label class="file-upload">
+                Select image file
+                <input id="imageFile" type="file" accept="image/*" />
               </label>
+              <div class="form-block">
+                <input
+                  data-bind="paint.fgColor"
+                  class="paint-color fg"
+                  type="color"
+                />
+                <input
+                  data-bind="paint.bgColor"
+                  class="paint-color bg"
+                  type="color"
+                />
+                <button
+                  class="tool pen"
+                  data-active-if="paint.tool==pen"
+                  data-click="paint.tool=pen"
+                ></button>
+                <button
+                  class="tool picker"
+                  data-active-if="paint.tool==picker"
+                  data-click="paint.tool=picker"
+                ></button>
+                <button
+                  class="tool eraser"
+                  data-active-if="paint.tool==eraser"
+                  data-click="paint.tool=eraser"
+                ></button>
+              </div>
+              <div class="imagePreview">
+                <canvas
+                  id="imageCanvas"
+                  data-read="selectedScene.image.pixels"
+                ></canvas>
+                <img class="pixelOverlay" src="pixels.png" />
+              </div>
+            </div>
+
+            <div
+              class="hidden"
+              data-active-if="selectedScene.sceneType==animation"
+            >
+              <label class="file-upload">
+                Select animated GIF image
+                <input id="animationFile" type="file" accept="image/gif" />
+              </label>
+              <div class="imagePreview">
+                <canvas
+                  id="animationCanvas"
+                  data-read="selectedScene.animation.frames"
+                ></canvas>
+                <img class="pixelOverlay" src="pixels.png" />
+              </div>
             </div>
           </fieldset>
 

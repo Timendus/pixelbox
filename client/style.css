@@ -17,6 +17,7 @@
   --background-3-color: rgb(30, 30, 30);
   --background-3-blue-color: rgb(30, 30, 50);
   --background-4-color: rgb(38, 38, 38);
+  --background-5-color: rgb(41, 41, 41);
 }
 
 * {
@@ -283,7 +284,8 @@ main > section {
   & input[type="text"],
   & input[type="number"],
   & select,
-  & label {
+  & label,
+  & .form-block {
     display: block;
     width: 100%;
     margin: 1em 0;
@@ -313,6 +315,18 @@ main > section {
       justify-content: space-between;
       align-items: center;
     }
+
+    &.file-upload {
+      cursor: pointer;
+
+      &:hover {
+        background-color: var(--background-5-color);
+      }
+
+      & input[type="file"] {
+        visibility: hidden;
+      }
+    }
   }
 
   & input[type="range"] {
@@ -324,6 +338,24 @@ main > section {
     height: 2em;
     border: 0px;
     border-radius: 1em;
+
+    &.paint-color {
+      border-radius: 0;
+      width: 1.5em;
+      height: 1.5em;
+
+      &.fg {
+        position: relative;
+        top: -0.5em;
+        z-index: 1;
+      }
+      &.bg {
+        position: relative;
+        top: 0.5em;
+        left: -1em;
+        z-index: 0;
+      }
+    }
   }
 
   & .indented {
@@ -334,6 +366,30 @@ main > section {
   & .button-holder {
     margin: 2em 0;
     text-align: right;
+  }
+
+  & .imagePreview {
+    position: relative;
+
+    & canvas {
+      width: 100%;
+      aspect-ratio: 1/1;
+
+      border: 1px solid var(--border-color);
+      image-rendering: pixelated;
+    }
+
+    & img.pixelOverlay {
+      width: 100%;
+      aspect-ratio: 1/1;
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 1;
+      pointer-events: none;
+    }
   }
 }
 
@@ -361,6 +417,35 @@ main > section {
   }
   &:hover {
     border-color: var(--border-hover-color);
+  }
+  &.tool {
+    background-color: var(--background-3-color);
+    background-position: center;
+    background-size: 70%;
+    background-repeat: no-repeat;
+    width: 2.5em;
+    height: 2.5em;
+
+    &:hover {
+      background-color: var(--background-3-blue-color);
+    }
+
+    &.active {
+      background-color: var(--primary-color);
+      &:hover {
+        background-color: var(--primary-hover-color);
+      }
+    }
+
+    &.pen {
+      background-image: url("img/pen.svg");
+    }
+    &.picker {
+      background-image: url("img/picker.svg");
+    }
+    &.eraser {
+      background-image: url("img/eraser.svg");
+    }
   }
 }
 
