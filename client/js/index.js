@@ -111,6 +111,11 @@ function applyRelationships(dataProxy) {
         data.selectedScene = selected;
         break;
 
+      case "selectedScene.volume":
+        // Check the change volume checkbox if slider moved
+        data.selectedScene.changeVolume = true;
+        break;
+
       case "selectedScene.brightness":
         // Check the change brightness checkbox if slider moved
         data.selectedScene.changeBrightness = true;
