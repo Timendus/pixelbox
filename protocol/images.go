@@ -78,6 +78,9 @@ func convertImage(image *image.RGBA) ([]byte, []byte, error) {
 
 	// Calculate bits needed per pixel to index the whole palette
 	bpp := int(math.Ceil(math.Log2(float64(len(paletteData)))))
+	if bpp == 0 {
+		bpp = 1
+	}
 	// Calculate total number of bytes needed for the image
 	totalBytes := int(math.Ceil(float64(bpp * width * height / 8)))
 
