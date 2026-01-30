@@ -73,16 +73,20 @@ jobs:
       - name: Create draft release
         id: create_release
         uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag_name: ${{ steps.semver.outputs.version }}
           release_name: PixelBox ${{ steps.semver.outputs.version }}
           body: |
             Automated draft release created by CI for run ${{ github.run_number }} (tag: ${{ steps.semver.outputs.version }}).
           draft: true
-          target_commitish: ${{ github.sha }}
+          commitish: ${{ github.sha }}
 
       - name: Upload Linux x86 asset to release
         uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: ./artifacts/pixelbox-linux-x86.tar.gz
@@ -91,6 +95,8 @@ jobs:
 
       - name: Upload Linux ARM asset to release
         uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: ./artifacts/pixelbox-linux-arm.tar.gz
