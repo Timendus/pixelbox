@@ -75,6 +75,6 @@ jobs:
         with:
           tag: ${{ steps.semver.outputs.version }}
           name: PixelBox ${{ steps.semver.outputs.version }}
-          files: artifacts/*.tar.gz
+          artifacts: artifacts/*.tar.gz
           draft: true
           token: ${{ secrets.GITHUB_TOKEN }}
