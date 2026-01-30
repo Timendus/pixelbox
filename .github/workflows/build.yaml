@@ -78,3 +78,7 @@ jobs:
           artifacts: artifacts/*.tar.gz
           draft: true
           token: ${{ secrets.GITHUB_TOKEN }}
+          omitBodyDuringUpdate: true
+          updateOnlyUnreleased: true
+          allowUpdates: true
+          body: "Automatically drafted release by GitHub Actions."
