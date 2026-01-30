@@ -69,36 +69,12 @@ jobs:
         run: |
           mkdir -p artifacts
           tar -czf artifacts/pixelbox-linux-arm.tar.gz -C dist/linux-arm .
-
-      - name: Create draft release
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                
+      - name: Create draft release & upload assets
+        uses: ncipollo/release-action@v1
         with:
-          tag_name: ${{ steps.semver.outputs.version }}
-          release_name: PixelBox ${{ steps.semver.outputs.version }}
-          body: |
-            Automated draft release created by CI for run ${{ github.run_number }} (tag: ${{ steps.semver.outputs.version }}).
+          tag: ${{ steps.semver.outputs.version }}
+          name: PixelBox ${{ steps.semver.outputs.version }}
+          files: artifacts/*.tar.gz
           draft: true
-          commitish: ${{ github.sha }}
-
-      - name: Upload Linux x86 asset to release
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./artifacts/pixelbox-linux-x86.tar.gz
-          asset_name: pixelbox-linux-x86.tar.gz
-          asset_content_type: application/gzip
-
-      - name: Upload Linux ARM asset to release
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./artifacts/pixelbox-linux-arm.tar.gz
-          asset_name: pixelbox-linux-arm.tar.gz
-          asset_content_type: application/gzip
+          token: ${{ secrets.GITHUB_TOKEN }}
