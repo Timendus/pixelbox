@@ -1,0 +1,96 @@
+name: Build and release PixelBox
+
+on:
+  push:
+    branches: [ "main" ]
+
+permissions:
+  contents: write
+
+jobs:
+  build_and_release:
+    name: Build PixelBox and draft a release
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        go-version: [ '1.24.x' ]
+
+    steps:
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ matrix.go-version }}
+
+      - name: Build binaries
+        run: |
+          make build
+
+      - name: Determine next semantic version (bump patch)
+        id: semver
+        run: |
+          # fetch tags (checkout already did, but be explicit)
+          git fetch --tags --prune
+
+          # find latest tag matching vMAJOR.MINOR.PATCH (sort by semver)
+          latest_tag=$(git tag --list 'v[0-9]*.[0-9]*.[0-9]*' --sort=-v:refname | head -n 1 || true)
+
+          if [ -z "$latest_tag" ]; then
+            echo "No tags found — starting at v0.1.0"
+            echo "version=v0.1.0" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          # strip leading 'v'
+          sem=${latest_tag#v}
+
+          # split into major/minor/patch
+          IFS='.' read -r major minor patch <<< "$sem"
+
+          # ensure patch is numeric then bump patch
+          if ! printf '%s\n' "$patch" | grep -qE '^[0-9]+$'; then
+            echo "Latest tag patch is not numeric; defaulting to v0.1.0"
+            echo "version=v0.1.0" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          patch=$((patch + 1))
+          next="v${major}.${minor}.${patch}"
+          echo "Latest tag: ${latest_tag} -> Next: ${next}"
+          echo "version=${next}" >> $GITHUB_OUTPUT
+
+      - name: Package Linux x86 binary
+        run: |
+          mkdir -p artifacts
+          tar -czf artifacts/pixelbox-linux-x86.tar.gz -C dist/linux-x86 .
+
+      - name: Package Linux ARM binary
+        run: |
+          mkdir -p artifacts
+          tar -czf artifacts/pixelbox-linux-arm.tar.gz -C dist/linux-arm .
+
+      - name: Create draft release
+        id: create_release
+        uses: actions/create-release@v1
+        with:
+          tag_name: ${{ steps.semver.outputs.version }}
+          release_name: PixelBox ${{ steps.semver.outputs.version }}
+          body: |
+            Automated draft release created by CI for run ${{ github.run_number }} (tag: ${{ steps.semver.outputs.version }}).
+          draft: true
+          target_commitish: ${{ github.sha }}
+
+      - name: Upload Linux x86 asset to release
+        uses: actions/upload-release-asset@v1
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./artifacts/pixelbox-linux-x86.tar.gz
+          asset_name: pixelbox-linux-x86.tar.gz
+          asset_content_type: application/gzip
+
+      - name: Upload Linux ARM asset to release
+        uses: actions/upload-release-asset@v1
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./artifacts/pixelbox-linux-arm.tar.gz
+          asset_name: pixelbox-linux-arm.tar.gz
+          asset_content_type: application/gzip
