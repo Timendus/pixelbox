@@ -3,6 +3,7 @@ package server
 import (
 	"encoding/json"
 	"io"
+	"log"
 	"os"
 )
 
@@ -24,15 +25,17 @@ type Device struct {
 
 var config Config
 
-func InitConfig() error {
+func init() {
 	configFile, err := os.Open("config.json")
 	if err != nil {
-		return err
+		log.Println("Could not open config.json file")
+		return
 	}
 	configBytes, _ := io.ReadAll(configFile)
 	err = json.Unmarshal(configBytes, &config)
 	if err != nil {
-		return err
+		log.Println("Could not parse config.json file as valid JSON")
+		return
 	}
 	if config.Server.Port == 0 {
 		config.Server.Port = 3000
@@ -40,7 +43,6 @@ func InitConfig() error {
 	if config.Server.Host == "" {
 		config.Server.Host = "127.0.0.1"
 	}
-	return nil
 }
 
 func GetConfig() Config {
