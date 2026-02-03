@@ -35,9 +35,9 @@ has both networking and Bluetooth. It was designed with a Raspberry Pi in mind,
 but any Linux machine should do. This device connects to the speaker over
 Bluetooth and runs the server to control it over the network.
 
-Download the latest release, edit `config.json` to match your settings and run
-the server. Then open the web UI in a web browser to control the Timebox and
-configure your scenes.
+Download the [latest release](https://github.com/Timendus/pixelbox/releases),
+edit `config.json` to match your settings and run the server. Then open the web
+UI in a web browser to control the Timebox and configure your scenes.
 
 For scripting, you can use the following endpoints:
 
