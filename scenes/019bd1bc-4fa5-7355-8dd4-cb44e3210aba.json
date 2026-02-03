@@ -1,0 +1,45 @@
+{
+  "uuid": "019bd1bc-4fa5-7355-8dd4-cb44e3210aba",
+  "message": null,
+  "messageDirty": true,
+  "name": "Bright Lights",
+  "id": "bright-lights",
+  "changeBrightness": true,
+  "brightness": 100,
+  "changeVolume": false,
+  "volume": 16,
+  "sceneType": "light",
+  "clock": {
+    "enabled": true,
+    "type": "FULL_SCREEN",
+    "color": "#FF0000"
+  },
+  "weather": {
+    "enabled": false,
+    "type": "OUTDOOR_VERY_LIGHT_CLOUDS"
+  },
+  "temperature": {
+    "enabled": false,
+    "temperature": 20
+  },
+  "calendar": {
+    "enabled": false
+  },
+  "light": {
+    "type": "PLAIN",
+    "color": "#f9f06b"
+  },
+  "effect": {
+    "type": "CLOUD",
+    "vjType": null,
+    "visualisationType": null,
+    "scoreRedPlayer": null,
+    "scoreBluePlayer": null
+  },
+  "image": {
+    "pixels": null
+  },
+  "animation": {
+    "frames": null
+  }
+}

@@ -1,0 +1,45 @@
+{
+  "uuid": "019bdb9e-f8be-7bf5-a533-904026d5f921",
+  "message": null,
+  "messageDirty": true,
+  "name": "Scoreboard",
+  "id": "scoreboard",
+  "changeBrightness": true,
+  "brightness": 71,
+  "changeVolume": false,
+  "volume": 16,
+  "sceneType": "effects",
+  "clock": {
+    "enabled": true,
+    "type": "FULL_SCREEN",
+    "color": "#FF0000"
+  },
+  "weather": {
+    "enabled": false,
+    "type": "OUTDOOR_VERY_LIGHT_CLOUDS"
+  },
+  "temperature": {
+    "enabled": false,
+    "temperature": 20
+  },
+  "calendar": {
+    "enabled": false
+  },
+  "light": {
+    "type": "PLAIN",
+    "color": "#FFFF00"
+  },
+  "effect": {
+    "type": "SCOREBOARD",
+    "vjType": null,
+    "visualisationType": null,
+    "scoreRedPlayer": 15,
+    "scoreBluePlayer": 10
+  },
+  "image": {
+    "pixels": null
+  },
+  "animation": {
+    "frames": null
+  }
+}

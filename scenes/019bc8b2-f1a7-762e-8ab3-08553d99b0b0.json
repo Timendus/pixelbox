@@ -1,0 +1,45 @@
+{
+  "uuid": "019bc8b2-f1a7-762e-8ab3-08553d99b0b0",
+  "message": null,
+  "messageDirty": true,
+  "name": "Clocky",
+  "id": "clocky",
+  "changeBrightness": true,
+  "brightness": 75,
+  "changeVolume": false,
+  "volume": 16,
+  "sceneType": "clock",
+  "clock": {
+    "enabled": true,
+    "type": "RAINBOW",
+    "color": "#FF0000"
+  },
+  "weather": {
+    "enabled": false,
+    "type": "OUTDOOR_VERY_LIGHT_CLOUDS"
+  },
+  "temperature": {
+    "enabled": true,
+    "temperature": 5
+  },
+  "calendar": {
+    "enabled": false
+  },
+  "light": {
+    "type": "PLAIN",
+    "color": "#FFFF00"
+  },
+  "effect": {
+    "type": "CLOUD",
+    "vjType": null,
+    "visualisationType": null,
+    "scoreRedPlayer": null,
+    "scoreBluePlayer": null
+  },
+  "image": {
+    "pixels": null
+  },
+  "animation": {
+    "frames": null
+  }
+}
