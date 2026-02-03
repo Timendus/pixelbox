@@ -55,7 +55,8 @@ func (c *Connection) Connect() error {
 			n, err := c.file.Read(buf)
 			if err != nil {
 				c.active = false
-				log.Fatal(err)
+				log.Println(err)
+				return
 			}
 			go c.callback(buf[:n])
 		}
