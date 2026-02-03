@@ -3,11 +3,11 @@ package server
 import (
 	"log"
 	"net/http"
-	"os"
+	"strconv"
 )
 
 type Server struct {
-	port             string
+	bind             string
 	router           *http.ServeMux
 	connection       *Connection
 	messageListeners []func([]byte)
@@ -16,14 +16,14 @@ type Server struct {
 var server Server
 
 func init() {
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = "3000"
-		log.Println("No PORT environment variable detected. Defaulting to " + port)
+	config := GetConfig()
+	if len(config.Devices) == 0 {
+		log.Fatal("No devices configured in config.json")
 	}
+	device := config.Devices[0]
 
 	go func() {
-		server.connection = NewConnection("11:75:58:B1:B2:15", 1, func(msg []byte) {
+		server.connection = NewConnection(device.Mac, device.Channel, func(msg []byte) {
 			for _, listener := range server.messageListeners {
 				listener(msg)
 			}
@@ -37,7 +37,7 @@ func init() {
 	}()
 
 	server = Server{
-		port:   ":" + port,
+		bind:   config.Server.Host + ":" + strconv.Itoa(config.Server.Port),
 		router: http.NewServeMux(),
 	}
 }
@@ -62,8 +62,8 @@ func Root(path string) {
 }
 
 func Start() {
-	log.Println("Starting server on localhost" + server.port)
-	log.Fatal(http.ListenAndServe(server.port, server.router))
+	log.Println("Starting server on " + server.bind)
+	log.Fatal(http.ListenAndServe(server.bind, server.router))
 }
 
 func Stop() {

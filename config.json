@@ -1,0 +1,13 @@
+{
+  "server": {
+    "host": "127.0.0.1",
+    "port": 3000
+  },
+  "devices": [
+    {
+      "name": "Timebox",
+      "mac": "00:00:00:00:00:00",
+      "channel": 1
+    }
+  ]
+}
