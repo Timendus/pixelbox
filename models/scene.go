@@ -90,7 +90,7 @@ var dir = "scenes"
 func init() {
 	entries, err := os.ReadDir(dir)
 	if err != nil {
-		log.Fatal("Can't open scene directory for reading")
+		log.Fatal("Can't read directory " + dir)
 	}
 
 	for _, e := range entries {
@@ -197,6 +197,7 @@ func (scene *Scene) writeToFile() error {
 	path := filepath.Join(dir, scene.Uuid.String()+".json")
 	f, err := os.Create(path)
 	if err != nil {
+		log.Println("Could not write to file " + path)
 		return err
 	}
 	defer f.Close()
@@ -211,6 +212,7 @@ func (scene *Scene) deleteFile() error {
 	path := filepath.Join(dir, scene.Uuid.String()+".json")
 	err := os.Remove(path)
 	if err != nil && !os.IsNotExist(err) {
+		log.Println("Could not delete file " + path)
 		return err
 	}
 	return nil
