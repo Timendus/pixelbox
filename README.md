@@ -11,7 +11,7 @@ When I won it in a little internal dev jam that we organised at my employer's, I
 had told myself I would free it from its dependency on its proprietary app. That
 was years ago of course; something more interesting or more pressing always got
 priority. But this was about the right amount of complexity and
-straight-forward-ness that I thought I needed to pull myself through these two
+straightforwardness that I thought I needed to pull myself through these two
 weeks, so I started hacking.
 
 ## The software
