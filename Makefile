@@ -11,3 +11,4 @@ copy-docs:
 	@cp README.md ${TARGET}
 	@cp LICENSE ${TARGET}
 	@cp config.json ${TARGET}
+	@cp -R scenes ${TARGET}
