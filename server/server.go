@@ -62,7 +62,7 @@ func Root(path string) {
 }
 
 func Start() {
-	log.Println("Starting server on " + server.bind)
+	log.Println("Starting server on http://" + server.bind)
 	log.Fatal(http.ListenAndServe(server.bind, server.router))
 }
 
