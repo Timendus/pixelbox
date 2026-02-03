@@ -10,3 +10,4 @@ build:
 copy-docs:
 	@cp README.md ${TARGET}
 	@cp LICENSE ${TARGET}
+	@cp config.json ${TARGET}
