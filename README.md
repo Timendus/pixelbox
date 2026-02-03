@@ -85,3 +85,15 @@ The wrapping is in [`envelope.go`](./protocol/envelope.go). The messages to send
 to the speaker are constructed by [`outgoing.go`](./protocol/outgoing.go). I've
 not made an aweful lot of effort to decode the messages coming back from the
 device, but what I figured out lives in [`incoming.go`](./protocol/incoming.go).
+
+## Developing
+
+In short: Make sure you have [Go](https://go.dev/doc/install) installed, check
+out the project and run `make`.
+
+```bash
+git clone git@github.com:Timendus/pixelbox.git
+cd pixelbox
+go mod install  # Not sure you even need this
+make
+```
