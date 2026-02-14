@@ -1,6 +1,7 @@
 package server
 
 import (
+	"io/fs"
 	"log"
 	"net/http"
 	"strconv"
@@ -53,6 +54,10 @@ func RegisterRouter(path string, router *http.ServeMux) {
 
 func Static(serverPath, localPath string) {
 	server.router.Handle(serverPath+"/", http.StripPrefix(serverPath, http.FileServer(http.Dir(localPath))))
+}
+
+func StaticFS(serverPath string, fs fs.FS) {
+	server.router.Handle(serverPath+"/", http.StripPrefix(serverPath, http.FileServerFS(fs)))
 }
 
 func Root(path string) {

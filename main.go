@@ -1,9 +1,11 @@
 package main
 
 import (
+	"embed"
 	_ "image/gif"
 	_ "image/jpeg"
 	_ "image/png"
+	"io/fs"
 	"log"
 
 	"github.com/timendus/pixelbox/controllers"
@@ -15,10 +17,15 @@ import (
 	"github.com/timendus/pixelbox/server"
 )
 
-var connection server.Connection
+//go:embed client
+var client embed.FS
 
 func main() {
-	server.Static("/client", "./client")
+	subDir, err := fs.Sub(client, "client")
+	if err != nil {
+		panic(err)
+	}
+	server.StaticFS("/client", subDir)
 	server.Root("/client")
 	server.RegisterMessageListener(callback)
 	defer server.Stop()
