@@ -35,9 +35,100 @@ has both networking and Bluetooth. It was designed with a Raspberry Pi in mind,
 but any Linux machine should do. This device connects to the speaker over
 Bluetooth and runs the server to control it over the network.
 
-Download the [latest release](https://github.com/Timendus/pixelbox/releases),
-edit `config.json` to match your settings and run the server. Then open the web
-UI in a web browser to control the Timebox and configure your scenes.
+### Downloading Pixelbox
+
+You can download the latest release from the [releases
+page](https://github.com/Timendus/pixelbox/releases) on Github. Or on a
+Raspberry Pi you can do something like this:
+
+```bash
+mkdir pixelbox
+cd pixelbox
+wget https://github.com/Timendus/pixelbox/releases/latest/download/pixelbox-linux-arm.tar.gz
+tar -xvf pixelbox-linux-arm.tar.gz
+```
+
+### Connecting to the speaker
+
+#### On a Linux Desktop
+
+Just use the graphical user interface to connect to the speaker. If the UI
+doesn't give you the MAC address of the speaker, you can use this command to
+find it:
+
+```bash
+bluetoothctl devices
+```
+
+#### On a Raspberry Pi
+
+If you're working with a headless Raspberry Pi, like I chose to do,
+unfortunately I think you will find that it is much more cumbersome to get the
+pi to connect to the Timebox Evo over Bluetooth than it is to run this software.
+I don't have a perfect manual for you, but it's something like this:
+
+```bash
+sudo apt update
+sudo apt install pipewire pipewire-pulse wireplumber libspa-0.2-bluetooth pipewire-audio
+sudo systemctl enable bluetooth
+sudo systemctl start bluetooth
+sudo rfkill unblock bluetooth
+bluetoothctl
+```
+
+Then in `bluetoothctl`:
+
+```bluetoothctl
+power on
+agent on
+default-agent
+scan on
+pair XX:XX:XX:XX:XX:XX
+trust XX:XX:XX:XX:XX:XX
+connect XX:XX:XX:XX:XX:XX
+```
+
+And if you also want to use the speaker for audio:
+
+```bash
+loginctl enable-linger $USER
+sudo mkdir -p /etc/wireplumber/wireplumber.conf.d
+sudo tee /etc/wireplumber/wireplumber.conf.d/51-bluez-seat.conf >/dev/null <<'EOF'
+wireplumber.profiles = {
+  main = {
+    monitor.bluez.seat-monitoring = disabled
+  }
+}
+EOF
+systemctl --user restart wireplumber
+systemctl --user restart pipewire
+```
+
+This is a very rough sketch. Properly describing this is outside the scope of
+this software. Use Google and your favourite AI to work your way through this :)
+
+### Running PixelBox
+
+Configure PixelBox by editing `config.json` with your favourite editor. Put the
+Bluetooth MAC address of the speaker that you discovered in the previous step in
+the `mac` field of the device. If you want, change the port on which the web
+service will run. The rest should be fine.
+
+You can then either just run the `pixelbox` binary from its directory or install
+PixelBox as a systemd service, so it runs in the background and starts at boot.
+This is how you do the latter:
+
+```bash
+nano pixelbox.service
+# Fix the path to where you downloaded pixelbox in both places, then run:
+./install.sh
+```
+
+Once the service is running, open the web UI in a web browser to control the
+Timebox and configure your scenes. It should be running on `http://<ip or
+hostname of your pi>:3000`.
+
+### Using the API
 
 For scripting, you can use the following endpoints:
 
