@@ -210,9 +210,13 @@ function registerEventHandlers() {
     if (e.target.files.length != 1) {
       return showMessage("Expected user to select an image file", true);
     }
-    globalState.selectedScene.image.pixels = await getImagePixels(
-      e.target.files[0]
-    );
+    try {
+      globalState.selectedScene.image.pixels = await getImagePixels(
+        e.target.files[0],
+      );
+    } catch (e) {
+      showMessage(e, true);
+    }
   });
 
   document
@@ -221,9 +225,13 @@ function registerEventHandlers() {
       if (e.target.files.length != 1) {
         return showMessage("Expected user to select an image file", true);
       }
-      globalState.selectedScene.animation.frames = await getAnimationFrames(
-        e.target.files[0]
-      );
+      try {
+        globalState.selectedScene.animation.frames = await getAnimationFrames(
+          e.target.files[0],
+        );
+      } catch (e) {
+        showMessage(e, true);
+      }
     });
 
   const canvas = document.querySelector("canvas#imageCanvas");

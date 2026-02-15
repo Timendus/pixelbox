@@ -128,6 +128,32 @@ Once the service is running, open the web UI in a web browser to control the
 Timebox and configure your scenes. It should be running on `http://<ip or
 hostname of your pi>:3000`.
 
+### Image support
+
+If you want to be able to upload images and animated GIF files to PixelBox, it
+needs to be served over HTTPS. The quickest way to do this on a Raspberry Pi is
+to install Caddy as a reverse proxy server.
+
+You can use the snippet below to do that, but make sure you change the IP
+address to the IP of your pi and if you changed the port in `config.json`,
+you'll have to change the port on the line that starts with `reverse_proxy` to
+match.
+
+```bash
+sudo apt install -y caddy
+sudo cp /etc/caddy/Caddyfile /etc/caddy/Caddyfile-backup
+sudo tee /etc/caddy/Caddyfile >/dev/null <<'EOF'
+https://192.168.1.105 {
+  tls internal
+  reverse_proxy 127.0.0.1:3000
+}
+EOF
+sudo systemctl restart caddy
+```
+
+You should now be able to access PixelBox on `https://<ip or hostname of your
+pi>` directly.
+
 ### Using the API
 
 For scripting, you can use the following endpoints:

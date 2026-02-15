@@ -26,7 +26,7 @@ export async function getAnimationFrames(file) {
       // We expect a RangeError here when we've read all the frames. That just
       // means we're done.
       if (e instanceof RangeError) return frames;
-      throw new Error("Could not decode the file as a GIF image");
+      throw e;
     }
   }
 }
@@ -77,6 +77,10 @@ function loadFile(file) {
 }
 
 async function decodeImage(data) {
+  if (!("ImageDecoder" in window))
+    throw new Error(
+      "No ImageDecoder support; browser not supported or page not served over HTTPS",
+    );
   try {
     return await new ImageDecoder({ data, type: "image/png" }).decode();
   } catch (e) {}
@@ -92,6 +96,10 @@ async function decodeImage(data) {
 }
 
 function decodeGIFFrame(image, frameIndex) {
+  if (!("ImageDecoder" in window))
+    throw new Error(
+      "No ImageDecoder support; browser not supported or page not served over HTTPS",
+    );
   return new ImageDecoder({ data: image, type: "image/gif" }).decode({
     frameIndex,
   });
