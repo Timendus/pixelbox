@@ -3,6 +3,8 @@
  * bi-directional. This enables you to keep your domain model in sync with
  * what's shown in the browser.
  *
+ * ## Usage
+ *
  * Bind part of the DOM to a data object:
  *
  * ```js
@@ -13,6 +15,7 @@
  *     role: "admin",
  *   },
  *   clickCounter: 0,
+ *   items: [1, 2, 3, "hello"],
  * });
  * ```
  *
@@ -30,9 +33,9 @@
  *    at that path.
  *  - `data-click`: The value of the attribute is an assignment expression. When
  *    the element is clicked, the expression will be evaluated and the result
- *    will be stored in the data object. For example,
- *    `data-click="counter=counter+1"` will increment the `counter` property in
- *    the data object when the element is clicked.
+ *    will be stored in the data object. For example, `data-click="user.role =
+ *    reviewer"` will update the `role` property of `user` in the data object
+ *    when the element is clicked.
  *  - `data-active-if`: The value of the attribute is a path or an expression
  *    (see below). If the expression evaluates to a truthy value, the class
  *    specified in the `class` option (default: "active") will be added to the
@@ -44,74 +47,107 @@
  * <div id="app" data-active-if="user.visible">
  *   <input type="text" data-bind="user.name">
  *   <p data-read="user.role"></p>
- *   <button data-click="user.role=admin">Admin</button>
- *   <button data-click="user.role=contrib">Contributor</button>
+ *   <button data-click="user.role = admin">Admin</button>
+ *   <button data-click="user.role = contrib">Contributor</button>
  *   <p data-read="clickCounter"></p>
  *   <button id="counter">Click me</button>
  * </div>
  * ```
  *
- * The constructor returns a proxy object which you can use to read and write to
- * the data object. Changes you make through this proxy will be reflected in the
- * DOM:
+ * ### Programmatic access
+ *
+ * The constructor returns a proxy object which you can use to read from and
+ * write to the data object. Changes you make through this proxy will be
+ * reflected in the DOM in the annotated places.
  *
  * ```js
  * dataProxy.data.user.visible = false;   // This will hide the entire div with id "app"
- * console.log(dataProxy.data.user.name); // This will log "Alice"
+ * console.log(dataProxy.data.user.name); // This will initially log "Alice"
  *
  * // Listen for clicks on the button, and update the counter shown
  * document.getElementById("counter").addEventListener("click", () =>
  *   dataProxy.data.clickCounter++);
  * ```
  *
- * You can also listen for changes to the data object by adding event listeners
- * to the returned object:
+ * You can also listen for changes to the data object by adding `change` event
+ * listeners to the returned object:
  *
  * ```js
  * dataProxy.addEventListener("change", (path, oldValue, newValue) => {
  *   console.log(`Change at ${path} from ${oldValue} to ${newValue}`);
+ *
+ *   switch(path) {
+ *     case "user.name":
+ *       console.log(`User's name changed to ${newValue}`);
+ *       break;
+ *   }
  * });
  * ```
  *
- * ## Expressions
+ * ### Expressions
  *
  * The values of the `data-active-if` and `data-click` attributes can be more
  * than just paths in the data object. They allow for simple expressions that
  * include comparisons and assignments. For example, `data-active-if="user.age
  * >= 18"` will add the active class to the element if the user's age is greater
- * than or equal to 18. `data-active-if="user.name==Alice"` will add the active
- * class if the user's name is Alice. The supported comparisons are `==`, `!=`,
- * `>`, `<`, `>=`, and `<=`.
+ * than or equal to 18. `data-active-if="user.name == Alice"` will add the
+ * active class if the user's name is Alice. The supported comparisons are `==`,
+ * `!=`, `>`, `<`, `>=`, and `<=`. Any whitespace is only for readability and
+ * will be ignored when parsing the expression.
  *
  * The `data-click` attribute supports assignment expressions. For example,
- * `data-click="user.name=John"` will set the user's name to John when the
+ * `data-click="user.name = John"` will set the user's name to John when the
  * element is clicked.
  *
- * If you want to do something more complicated than what these simple
- * expressions allow, just write proper event listeners that manipulate the data
- * object, like in the examples above.
+ * Don't try to be too "clever" with these expressions. They are very limited
+ * for a reason; in most people's mental model HTML is not for logic. If you
+ * want to do something more complicated, just write write some complementary
+ * Javascript code that listens for changes to the data object and updates it
+ * accordingly, like in the examples above.
  *
- * ## Loops
+ * ### Loops
  *
- * You can also use the `data-loop` attribute to repeat a section of the DOM for
- * each element in an array in the data object. The value of the `data-loop`
- * attribute should be an assignment expression where the assignee is a variable
- * name and the assigned value is a path to an array in the data object. For
- * example, `data-loop="item=items"` will repeat the section of the DOM for each
- * element in the `items` array in the data object, and within that section you
- * can use `item` to refer to the current element. The original contents of the
- * element with the `data-loop` attribute will be used as a template for each
- * repeated section.
+ * Loop are basically the "data-read" property for arrays. You can use the
+ * `data-loop` attribute to repeat a section of the DOM for each element in an
+ * array in the data object.
+ *
+ * The value of the `data-loop` attribute should be an assignment expression
+ * where the assignee is a variable name and the assigned value is a path to an
+ * array in the data object. For example, `data-loop="index = items"` will
+ * repeat the section of the DOM for each element in the `items` array in the
+ * data object, and within that section you can use your variable (in this
+ * example `index`) to refer to the index of the current element.
  *
  * For example:
  *
  * ```html
- * <ul data-loop="item=items">
- *   <li data-read="item"></li>
+ * <ul data-loop="index = items">
+ *   <li data-read="items.index"></li>
  * </ul>
  * ```
  *
+ * This will dynamically expand to:
+ *
+ * ```html
+ * <ul>
+ *   <li>1</li>
+ *   <li>2</li>
+ *   <li>3</li>
+ *   <li>hello</li>
+ * </ul>
+ * ```
+ *
+ * When items are added to or removed from the array, the `data-loop` attribute
+ * will keep the number of items in sync. When the value of items in the array
+ * or their order changes, the `data-read` attributes will take care of that.
+ * Items in the array can be objects, in which case you can use paths like
+ * `items.index.name` to refer to their properties.
+ *
+ * There is no `data-write` equivalent for arrays.
+ *
  * ## Options
+ *
+ * ### Behaviour settings
  *
  * The DataBind constructor takes an optional third argument with the following
  * options:
@@ -128,11 +164,13 @@
  *   should have a `selector` property, and optionally `toDom` and `fromDom`
  *   functions. If an element matches the selector, the corresponding conversion
  *   functions will be used to convert values between the data object and the
- *   DOM, instead of the default conversions. The `toDom` function takes three
- *   arguments: the path that changed in the data object, the new value at that
- *   path, and the DOM element to update. The `fromDom` function takes two
- *   arguments: the path to write to in the data object, and the DOM element to
- *   read from. It should return the value to write to the data object.
+ *   DOM, instead of the default conversions.
+ *     - The `toDom` function takes three arguments: the path that changed in
+ *       the data object, the new value at that path, and the DOM element to
+ *       update.
+ *     - The `fromDom` function takes two arguments: the path to write to in the
+ *       data object, and the DOM element to read from. It should return the
+ *       value to write to the data object.
  *
  * For example:
  *
@@ -152,8 +190,14 @@
  * });
  * ```
  *
- * You can also override the attribute names for the bindings by passing
- * different values in the options object. For example, if you want to use
+ * This allows you to build custom interface elements that still respond
+ * dynamically to changes in either the DOM or the data, using all the same
+ * binding attributes.
+ *
+ * ### Attribute names
+ *
+ * You can also user the options object to override the attribute names for the
+ * bindings by passing different values. For example, if you want to use
  * `data-model` instead of `data-bind` and `data-is-active` instead of
  * `data-active-if` for some reason, you can do:
  *
@@ -163,6 +207,13 @@
  *   activeIf: "data-is-active"
  * });
  * ```
+ *
+ * This feature is mainly there to allow you to use this library in contexts
+ * where the default attribute names might conflict with other libraries or
+ * frameworks, and I would advise against changing them for personal preference.
+ * Keeping them predictable keeps your code in line with this documentation and
+ * helps people to move from project to project without having to adapt their
+ * mental model.
  *
  * @module
  */
