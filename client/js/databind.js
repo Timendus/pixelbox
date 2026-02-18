@@ -214,6 +214,8 @@ export default class Databind {
   }
 
   _parseExpression(expression) {
+    expression = expression.trim();
+
     if (expression.match(`^[^=!]+=[^=].*$`) != null) {
       // This translates to: "an equals sign not part of a comparison". If we
       // match that, we have an assignment in the form of "something=anything".
@@ -222,7 +224,7 @@ export default class Databind {
       );
       return {
         type: assigned.type == "unparseable" ? "unparseable" : "assignment",
-        assignee: expression.split("=")[0],
+        assignee: expression.split("=")[0].trim(),
         assigned: assigned,
         value: assigned.value,
       };
